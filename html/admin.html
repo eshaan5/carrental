@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="../css/landingPage.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div class="links">
+        <a href="">Home</a>
+        <a href="analytics.html">Analysis</a>
+        <a href="carRegistration.html">Add Car</a>
+        <a href="profile.html">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <section id="cars-container">
+      <!-- Cars will be displayed here -->
+    </section>
+
+    <div id="car-update-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeCarUpdateModal()">&times;</span>
+        <h2>Update Car Details</h2>
+        <label for="new-image">New Image URL:</label>
+        <input type="file" id="new-image" accept="image/*" required />
+        <label for="new-rent">New Rent Amount:</label>
+        <input type="number" id="new-rent" placeholder="Enter new rent amount" />
+        <button onclick="updateCar()">Update Car</button>
+      </div>
+    </div>
+
+    <div id="bookings-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeBookingsModal()">&times;</span>
+        <h2>Car Bookings</h2>
+        <div id="bookings-list">
+          <!-- Car bookings will be displayed here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="password-toast" class="toast">
+      <div class="toast-body">
+        Car details updated successfully.!
+      </div>
+    </div>
+    
+
+    <script src="../js/admin.js"></script>
+    <script src="../js/util.js"></script>
+  </body>
+</html>

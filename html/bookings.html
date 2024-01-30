@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/bookings.css" />
+    <link rel="stylesheet" href="../css/landingPage.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div class="links">
+        <a href="landingPage.html">Home</a>
+        <a href="#">My Bookings</a>
+        <a href="profile.html">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <header>
+      <h1>Your Trips</h1>
+      <nav>
+        <ul>
+          <li class="" onclick="showUpcoming()"><a id="upcoming-a" class="highlight" href="#upcoming-trips">Upcoming Trips</a></li>
+          <li class="" onclick="showPrevious()"><a id="previous-a" href="#previous-trips">Previous Trips</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section id="upcoming-trips">
+      <h2>Upcoming Trips</h2>
+      <div id="upcoming-trips-list">
+        <!-- Display upcoming trips here -->
+      </div>
+    </section>
+
+    <section id="previous-trips">
+      <h2>Previous Trips</h2>
+      <div id="previous-trips-list">
+        <!-- Display previous trips here -->
+      </div>
+    </section>
+
+    <script src="../js/bookings.js"></script>
+    <script src="../js/util.js"></script>
+  </body>
+</html>

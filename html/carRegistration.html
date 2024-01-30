@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/carRegistration.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div class="links">
+        <a href="admin.html">Home</a>
+        <a href="analytics.html">Analysis</a>
+        <a href="profile.html">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <div id="admin-form">
+      <h2>Add New Car</h2>
+      <form id="car-details-form">
+        <label for="car-name">Car Name:</label>
+        <input type="text" id="car-name" required />
+
+        <label for="car-number">Car Number:</label>
+        <input type="text" id="car-number" required />
+
+        <label for="car-model">Car Model:</label>
+        <input type="text" id="car-model" required />
+
+        <label for="car-year">Car Year:</label>
+        <input type="number" id="car-year" min="1900" max="2025" required />
+
+        <label for="car-image">Upload Car Image:</label>
+        <input type="file" id="car-image-upload" accept="image/*" required />
+
+        <label for="rent-amount">Rent Amount for a Day:</label>
+        <input type="number" id="rent-amount" min="1" required />
+
+        <button type="button" onclick="saveCarDetails()">Save Car</button>
+      </form>
+
+      <p id="form-errors" class="error-message"></p>
+    </div>
+
+    <div id="password-toast" class="toast">
+      <div class="toast-body">
+        Car details saved successfully!
+      </div>
+    </div>
+    
+    <script src="../js/carRegistration.js"></script>
+    <script src="../js/util.js"></script>
+  </body>
+</html>

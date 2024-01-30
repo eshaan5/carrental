@@ -1,0 +1,138 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-image: url("../assets/car.png");
+}
+
+form {
+  max-width: 400px;
+  padding: 20px;
+}
+
+div {
+  max-width: 400px;
+  margin: 50px auto;
+  background: #ffffff81;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 10px;
+  min-height: 50px;
+}
+
+button {
+  background-color: rgb(43, 167, 154);
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: turquoise;
+}
+
+.toggle-button {
+  background-color: #fff;
+  color: black;
+  border: 1px solid black;
+}
+
+.toggle-button:hover {
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  background: #ffffff81;
+  overflow: hidden;
+  max-height: 10vh;
+  padding-right: 10px;
+  position: sticky;
+}
+
+nav a {
+  float: left;
+  display: block;
+  color: black;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+nav a img {
+  max-height: 10vh;
+  margin-bottom: 0;
+}
+
+nav a:hover {
+  background-color: #fff;
+  color: rgb(43, 167, 154);
+}
+
+.navbar-brand {
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 0;
+  padding-bottom: 0;
+}
+
+.links {
+  margin: 0;
+  margin-right: 10px;
+  background-color: inherit;
+  border: none;
+}
+
+#password-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  display: none;
+  z-index: 1;
+}
+
+#password-toast.show {
+  display: block;
+  animation: fadeOut 5s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}

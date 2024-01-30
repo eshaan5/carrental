@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics Page</title>
+    <link rel="stylesheet" href="../css/analytics.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div class="links">
+        <a href="admin.html">Home</a>
+        <a href="">Analysis</a>
+        <a href="carRegistration.html">Add Car</a>
+        <a href="profile.html">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <div id="date-container">
+      <label for="start-date">Start Date:</label>
+      <input type="date" id="start-date" required />
+      <label for="end-date">End Date:</label>
+      <input type="date" id="end-date" required />
+      <button onclick="generateAnalytics()">Generate Analytics</button>
+    </div>
+
+    <div id="secondary-container">
+      <h2>Day Wise Bookings</h2>
+      <canvas id="day-wise-chart" style="background-color: #fff; width: 50%; height: 400px; padding: 1rem"></canvas>
+    </div>
+
+    <div id="main-container" style="display: none; flex-direction: column; flex-wrap: wrap; margin-top: 20px">
+      <div id="top" style="width: 50%; display: flex; gap: 50px">
+        <div id="top-left-section">
+          <h2>Business per Day</h2>
+          <canvas id="bookings-chart" style="background-color: #fff; width: 50%; height: 400px; padding: 1rem"></canvas>
+        </div>
+        <div id="top-right-section" style="display: flex">
+          <!-- Display total revenue, logins, signups, and conversion rate here -->
+        </div>
+      </div>
+      <div id="bottom">
+        <div id="bottom-left-section">
+          <div id="top-users">
+            <h2>Top Users</h2>
+            <table id="top-users-table">
+              <!-- Display top 5 users based on revenue -->
+            </table>
+          </div>
+          <div id="top-cars">
+            <h2>Top Cars</h2>
+            <table id="top-cars-table">
+              <!-- Display top 3 cars based on bookings -->
+            </table>
+          </div>
+        </div>
+        <div id="bottom-right-section">
+          <h2>Company Wise Bookings</h2>
+          <canvas height="200" width="100" id="bottom-right" style="background-color: #fff; padding: 0.3rem"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/analytics.js"></script>
+    <script src="../js/util.js"></script>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Car Rental Portal - Login/Signup</title>
+    <link rel="stylesheet" href="../css/login.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <!-- <div class="links">
+        <a href="#">Home</a>
+        <a href="#">About Us</a>
+        <a href="#">Cars</a>
+        <a href="#">Bikes</a>
+      </div> -->
+    </nav>
+
+    <div id="login-container">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label for="login-username">Username:</label>
+        <input type="text" id="login-username" required />
+
+        <label for="login-password">Password:</label>
+        <input type="password" id="login-password" required />
+
+        <button type="submit" type="button" onclick="login()">Login</button>
+        <p id="login-error" class="error-message"></p>
+      </form>
+      <button class="toggle-button" onclick="showSignupForm()">Not a user? Register</button>
+    </div>
+
+    <div id="signup-container" style="display: none">
+      <h2>Sign Up</h2>
+      <form id="signup-form">
+        <label for="first-name">First Name:</label>
+        <input type="text" id="first-name" required />
+        <p class="error"></p>
+
+        <label for="last-name">Last Name:</label>
+        <input type="text" id="last-name" required />
+        <p class="error"></p>
+
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required />
+        <p class="error"></p>
+
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" pattern="[0-9]{10}" required />
+        <p class="error"></p>
+
+
+        <label for="username">Username:</label>
+        <input type="text" id="username" required />
+        <p class="error"></p>
+
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required />
+        <p class="error"></p>
+
+
+        <label for="confirm-password">Confirm Password:</label>
+        <input type="password" id="confirm-password" required />
+        <p class="error"></p>
+
+
+        <button type="button" onclick="signup()">Sign Up</button>
+        <p id="signup-error" class="error-message"></p>
+      </form>
+      <button class="toggle-button" onclick="showLoginForm()">Already Registered? Log In</button>
+    </div>
+
+    <div id="password-toast" class="toast">
+      <div class="toast-body">Password changed successfully!</div>
+    </div>
+
+    <script src="../js/login.js"></script>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/landingPage.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div class="links">
+        <a href="landingPage.html">Home</a>
+        <a href="bookings.html">My Bookings</a>
+        <a href="profile.html">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <div id="availability-checker">
+      <h2>Check Car Availability</h2>
+      <div class="input-container">
+        <div class="input-ele">
+          <label for="start-date">Start Date:</label>
+          <input type="date" id="start-date" required />
+          <p id="start-date-error" class="error-message"></p>
+        </div>
+
+        <div class="input-ele">
+          <label for="end-date">End Date:</label>
+          <input type="date" id="end-date" required />
+          <p id="end-date-error" class="error-message"></p>
+        </div>
+
+        <button onclick="checkCarAvailability()">Check Availability</button>
+      </div>
+    </div>
+    <div class="cars-section">
+    <div id="available-cars">
+      <!-- Available cars will be displayed here -->
+      
+    </div>
+    <div id="car-pagination">
+      <button id="prev-page" onclick="changePage(-1)">Previous Page</button>
+      <span id="page-info">Page 1</span>
+      <button id="next-page" onclick="changePage(1)">Next Page</button>
+    </div>
+    </div>
+
+    <!-- Modal for Rent Now -->
+    <div id="rent-now-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeRentNowModal()">&times;</span>
+        <h2>Rent Now</h2>
+        <label for="rent-start-date">Start Date:</label>
+        <input type="date" id="rent-start-date" required />
+
+        <label for="rent-end-date">End Date:</label>
+        <input type="date" id="rent-end-date" required />
+        <p id="availability-error"></p>
+
+        <p id="car-details"></p>
+
+        <p id="rent-total">Total Rent: $0</p>
+
+        <button id="confirm" onclick="confirmRentNow()">Rent Now</button>
+      </div>
+    </div>
+
+    <div id="password-toast" class="toast">
+      <div class="toast-body">
+        Rent confirm!
+      </div>
+    </div>
+    
+
+    <script src="../js/landingPage.js"></script>
+    <script src="../js/util.js"></script>
+  </body>
+</html>

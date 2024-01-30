@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/profile.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="#" class="navbar-brand">
+        <img src="../assets/logo.jpg" alt="Car Rental" />
+      </a>
+      <div id="links">
+        <a href="landingPage.html">Home</a>
+        <a href="bookings.html">My Bookings</a>
+        <a href=""></a>
+        <a href="">Profile</a>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <div id="profile-container">
+        <h2>User Profile</h2>
+        <h3 id="welcome-message"></h3>
+
+        <div id="user-details">
+            <p><strong>Username:</strong> <span id="username"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Phone:</strong> <span id="phone"></span></p>
+        </div>
+        
+        <button onclick="showChangePasswordForm()">Change Password</button>
+
+        <div id="change-password-form" style="display: none">
+            <h3>Change Password</h3>
+            <form id="password-form">
+                <label for="current-password">Current Password:</label>
+                <input type="password" id="current-password" required />
+
+                <label for="new-password">New Password:</label>
+                <input type="password" id="new-password" required />
+
+                <label for="confirm-new-password">Confirm New Password:</label>
+                <input type="password" id="confirm-new-password" required />
+
+                <button type="button" onclick="changePassword()">Submit</button>
+                <p id="password-change-error" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="password-toast" class="toast">
+      <div class="toast-body">
+        Password changed successfully!
+      </div>
+    </div>
+    
+
+    <script src="../js/profile.js"></script>
+    <script src="../js/util.js"></script>
+
+</body>
+</html>

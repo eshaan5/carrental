@@ -1,0 +1,213 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-image: url("../assets/car.png");
+}
+
+#bookings-chart {
+  min-width: 35vw;
+  max-height: 40vh;
+}
+
+#day-wise-chart {
+  min-width: 35vw;
+  max-height: 60vh;
+}
+
+#date-container,
+#main-container, #secondary-container {
+  display: flex;
+  gap: 20px;
+  max-width: 90vw;
+  margin: 50px auto;
+  background: #ffffff81;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#secondary-container {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 10px;
+  min-height: 50px;
+}
+
+button {
+  background-color: rgb(43, 167, 154);
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  max-height: 50px;
+}
+
+button:hover {
+  background-color: turquoise;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  background: #ffffff81;
+  overflow: hidden;
+  max-height: 10vh;
+  padding-right: 10px;
+  position: sticky;
+}
+
+nav a {
+  float: left;
+  display: block;
+  color: black;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+nav a img {
+  max-height: 10vh;
+  margin-bottom: 0;
+}
+
+nav a:hover {
+  background-color: #fff;
+  color: rgb(43, 167, 154);
+}
+
+.navbar-brand {
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 0;
+  padding-bottom: 0;
+}
+
+.links {
+  margin: 0;
+  margin-right: 10px;
+  background-color: inherit;
+  border: none;
+}
+
+#top-right-section {
+  display: flex;
+  background-color: #fff;
+  flex-direction: column;
+  padding: 2rem;
+  min-width: 30vw;
+  gap: 2rem;
+}
+
+.top-card {
+  border: 1px solid black;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.418);
+}
+
+#bottom-right-section, #top-left-section {
+  background-color: #fff;
+  padding: 1rem;
+  min-width: 35vw;
+}
+
+#top-left-section {
+  max-width: 50vw;
+  max-height: 60vh;
+  min-width: 40vw;
+  min-height: 40vh;
+}
+
+#bottom-right {
+    max-width: 40vw;
+    max-height: 60vh;
+    min-width: 30vw;
+    min-height: 40vh;
+}
+
+#bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* table */
+
+/* Styles for Bottom Left Section */
+
+#bottom-left-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    min-width: 40vw;
+    gap: 2rem;
+    background: #fff;
+    padding: 2rem;
+  }
+  
+  /* Styles for Top 5 Users Table */
+  #top-users-table table {
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+  
+  #top-users-table th, #top-users-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  #top-users-table th {
+    background-color: #b0aaaa;
+  }
+  
+  /* Styles for Top 3 Cars and Bottom 3 Cars Table */
+  
+  #top-cars-table {
+    flex: 1;
+  }
+  
+  #top-cars-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  #top-cars-table th, #top-cars-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  #top-cars-table th {
+    background-color: #b0aaaa;
+  }
+
+  
+  /* Add more styles based on your preferences */
+  th, td {
+    min-height: 100vh;
+  }
