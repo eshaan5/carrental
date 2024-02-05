@@ -1,4 +1,7 @@
 let user = localStorage.getItem("currentUser");
+document.addEventListener("DOMContentLoaded", function () {
+  checkObject();
+});
 
 if (user) {
   user === "admin" ? (window.location.href = "admin.html") : (window.location.href = "landingPage.html");
@@ -102,80 +105,83 @@ function signup() {
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  getByKey(username.value, "users")
+    .then((user) => {
+      if (user) {
+        document.getElementsByClassName("error")[4].innerText = "User already exists. Please login.";
+        return;
+      }
 
-  // Check if the username is already taken
-  if (
-    users.some(function (user) {
-      return user.username === username.value || user.email === email.value;
+      // Save user information in IndexedDB
+      const newUser = {
+        firstName: firstName.value,
+        lastName: lastName.value,
+        email: email.value,
+        username: username.value,
+        password: password.value,
+        phone: phone.value,
+        registeredOn: new Date().toISOString().split("T")[0],
+        logins: [],
+      };
+
+      console.log(newUser);
+
+      return addToDB(newUser, "users", "username");
     })
-  ) {
-    document.getElementsByClassName("error")[4].innerText = "User already exists. Please login.";
-    return;
-  }
-
-  // Save user information in localStorage
-  const newUser = {
-    firstName: firstName.value,
-    lastName: lastName.value,
-    email: email.value,
-    username: username.value,
-    password: password.value,
-    phone: phone.value,
-    registeredOn: new Date().toISOString().split("T")[0],
-    logins: [],
-  };
-
-  console.log(newUser);
-
-  // Add the new user to the users array
-  users.push(newUser);
-
-  // Save the updated users array in localStorage
-  localStorage.setItem("users", JSON.stringify(users));
-
-  // Clear form and display success message
-  setTimeout(() => {
-    document.getElementById("signup-form").reset();
-    document.getElementById("signup-error").innerText = "";
-    showToast();
-    showLoginForm();
-  }, 2000);
+    .then((user) => {
+      if (user) {
+        setTimeout(() => {
+          document.getElementById("signup-form").reset();
+          document.getElementById("signup-error").innerText = "";
+          showToast();
+          showLoginForm();
+        }, 2000);
+      }
+    });
 }
 
 function login() {
   const credential = document.getElementById("login-username").value;
   const password = document.getElementById("login-password").value;
 
-  // Retrieve users array from localStorage
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  // Retrieve user from IndexedDB
+  getByKey(credential, "users")
+    .then((userByUsername) => {
+      getByKey(credential, "users", "email")
+        .then((userByEmail) => {
+          const user = userByUsername || userByEmail;
 
-  // Find the user with the entered username or email
-  let user = users.find((u) => u.username === credential) || users.find((u) => u.email === credential);
+          if (user && user.password === password) {
+            // Successful login
+            document.getElementById("login-error").innerText = "";
 
-  if (user && user.password === password) {
-    // Successful login
-    document.getElementById("login-error").innerText = "";
+            // Store the current user's username in local storage
+            localStorage.setItem("currentUser", user.username);
 
-    // Store the current user's username in local storage
-    localStorage.setItem("currentUser", user.username);
-
-    const index = users.findIndex((u) => u.username == user.username);
-    users[index].logins.push(new Date().toISOString().split("T")[0]);
-    localStorage.setItem("users", JSON.stringify(users));
-
-    if (user.username === "admin") {
-      window.history.replaceState({}, document.title, "admin.html");
-      window.location.href = "admin.html";
-      return;
-    }
-
-    // Redirect to the landing page
-
-    window.history.replaceState({}, document.title, "landingPage.html");
-    window.location.href = "landingPage.html";
-  } else {
-    // Invalid credentials
-    document.getElementById("login-error").innerText = "Invalid username or password.";
-  }
+            // Update login timestamp
+            user.logins.push(new Date().toISOString().split("T")[0]);
+            addToDB(user, "users", "username", "put").then(() => {
+              if (user.username === "admin") {
+                window.history.replaceState({}, document.title, "admin.html");
+                window.location.href = "admin.html";
+              } else {
+                // Redirect to the landing page
+                window.history.replaceState({}, document.title, "landingPage.html");
+                window.location.href = "landingPage.html";
+              }
+            });
+          } else {
+            // Invalid credentials
+            document.getElementById("login-error").innerText = "Invalid username or password.";
+          }
+        })
+        .catch((error) => {
+          console.error("Error retrieving user by email:", error);
+          document.getElementById("login-error").innerText = "Error during login. Please try again.";
+        });
+    })
+    .catch((error) => {
+      console.error("Error retrieving user by username:", error);
+      document.getElementById("login-error").innerText = "Error during login. Please try again.";
+    });
 }

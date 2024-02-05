@@ -8,6 +8,7 @@ function showToast() {
   passwordToast.classList.add("show");
 
   setTimeout(() => {
+    window.location.href = "admin.html";
     passwordToast.classList.remove("show");
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }
@@ -49,55 +50,53 @@ function saveCarDetails() {
     formErrors.textContent = ""; // Clear errors if any
   }
 
-  // Retrieve existing cars from local storage
-  const existingCars = JSON.parse(localStorage.getItem("cars")) ?? [];
-
   // Check if there's already a car with the same number
-  const carWithSameNumber = existingCars.find((car) => car.number === carNumber);
-
-  if (carWithSameNumber) {
-    // Display an error message if a car with the same number already exists
-    formErrors.textContent = "A car with the same number already exists in the database. Add another Car!";
-    return;
-  } else {
+  getByKey(carNumber, "cars").then((car) => {
+    if (car) {
+      // Display an error message if a car with the same number already exists
+      formErrors.textContent = "A car with the same number already exists in the database. Add another Car!";
+      return;
+    }
     formErrors.textContent = ""; // Clear errors if any
-  }
 
-  // Get the uploaded image file
-  const imageFile = carImageUploadInput.files[0];
+    // Get the uploaded image file
+    const imageFile = carImageUploadInput.files[0];
 
-  // Read the image file as a data URL
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const imageDataURL = e.target.result;
+    // Read the image file as a data URL
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const imageDataURL = e.target.result;
 
-    // Create a new car object
-    const newCar = {
-      name: carName,
-      number: carNumber,
-      model: carModel,
-      year: carYear,
-      image: imageDataURL,
-      rentAmount: rentAmount,
+      // Create a new car object
+      const newCar = {
+        name: carName,
+        number: carNumber,
+        model: carModel,
+        year: carYear,
+        image: imageDataURL,
+        rentAmount: rentAmount,
+      };
+
+      // Add the new car to the array
+      addToDB(newCar, "cars").then((car) => {
+        if (!car) {
+          formErrors.textContent = "Failed to add car to database. Please try again.";
+          return;
+        }
+
+        // Optionally, display a success message or redirect to another page
+        showToast();
+
+        // Clear the form
+        carNameInput.value = "";
+        carModelInput.value = "";
+        carYearInput.value = "";
+        carImageUploadInput.value = "";
+        rentAmountInput.value = "";
+        carNumberInput.value = "";
+      });
     };
 
-    // Add the new car to the array
-    existingCars.push(newCar);
-
-    // Save the updated array back to local storage
-    localStorage.setItem("cars", JSON.stringify(existingCars));
-
-    // Optionally, display a success message or redirect to another page
-    showToast();
-
-    // Clear the form
-    carNameInput.value = "";
-    carModelInput.value = "";
-    carYearInput.value = "";
-    carImageUploadInput.value = "";
-    rentAmountInput.value = "";
-    carNumberInput.value = "";
-  };
-
-  reader.readAsDataURL(imageFile);
+    reader.readAsDataURL(imageFile);
+  });
 }
