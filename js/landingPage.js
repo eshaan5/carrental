@@ -74,37 +74,50 @@ function updateRent() {
   rentNowModal.style.display = "block";
 }
 
-function checkCarAvailabilityForRent(startRentDate, endRentDate) {
-  // Retrieve existing cars from local storage
-  const existingCars = JSON.parse(localStorage.getItem("cars")) || [];
+function checkCarAvailabilityForRent(startRentDate, endRentDate, selectedCar) {
+  // Retrieve existing cars using indexedDB
+  return getAllDocuments("cars")
+    .then((existingCars) => {
+      // Find the selected car
+      const selectedCarObject = existingCars.find((car) => car.number === selectedCar);
 
-  // Find the selected car
-  const selectedCarObject = existingCars.find((car) => car.number === selectedCar);
+      if (!selectedCarObject) {
+        // Selected car not found in the existing cars array
+        return false;
+      }
 
-  if (!selectedCarObject) {
-    // Selected car not found in the existing cars array
-    return false;
-  }
+      const carBookingIds = selectedCarObject.bookings || [];
 
-  const carBookingIds = selectedCarObject.bookings || [];
+      // Map over booking IDs to get corresponding booking details
+      const bookingPromises = carBookingIds.map((bookingId) => {
+        return getByKey(bookingId, "bookings");
+      });
 
-  // Map over booking IDs to get corresponding booking details
-  const carBookings = carBookingIds.map((bookingId) => {
-    // Assuming bookings array structure is stored in local storage
-    const allBookings = JSON.parse(localStorage.getItem("bookings")) || [];
-    return allBookings.find((booking) => booking.id === bookingId);
-  });
+      // Resolve all booking promises
+      return Promise.all(bookingPromises)
+        .then((carBookings) => {
+          // Check if the selected period overlaps with any booking for the car
+          const overlap = carBookings.some((booking) => {
+            const bookingStartDate = booking.startDate;
+            const bookingEndDate = booking.endDate;
 
-  // Check if the selected period overlaps with any booking for the car
-  const overlap = carBookings.some((booking) => {
-    const bookingStartDate = booking.startDate;
-    const bookingEndDate = booking.endDate;
+            return endRentDate >= bookingStartDate && startRentDate <= bookingEndDate;
+          });
 
-    return endRentDate >= bookingStartDate && startRentDate <= bookingEndDate;
-  });
-
-  // If there is no overlap, the car is considered available for rent
-  return !overlap;
+          // If there is no overlap, the car is considered available for rent
+          return !overlap;
+        })
+        .catch((error) => {
+          console.error("Error getting bookings:", error);
+          // Reject the promise if there is an error
+          throw error;
+        });
+    })
+    .catch((error) => {
+      console.error("Error getting cars:", error);
+      // Reject the promise if there is an error
+      throw error;
+    });
 }
 
 function verifyDates() {
@@ -137,36 +150,56 @@ function verifyDates() {
   }
 }
 
-let availableCars = [];
-
 function checkCarAvailability() {
-  availableCars = getAvailableCars(startDateInput.value, endDateInput.value);
-
-  displayAvailableCars(availableCars);
+  getAllDocuments("cars")
+    .then((cars) => {
+      return getAvailableCars(cars, startDateInput.value, endDateInput.value);
+    })
+    .then((availableCars) => {
+      console.log("Available cars:", availableCars);
+      displayAvailableCars(availableCars);
+    });
 }
 
-function getAvailableCars(startDate, endDate) {
-  // Filter cars based on availability
-  return cars.filter((car) => {
-    const carBookingIds = car.bookings || [];
+function getAvailableCars(cars, startDate, endDate) {
+  return new Promise((resolve, reject) => {
+    const availableCarsPromises = cars.map((car) => {
+      const carBookingIds = car.bookings || [];
 
-    // Map over booking IDs to get corresponding booking details
-    const carBookings = carBookingIds.map((bookingId) => {
-      // Assuming bookings array structure is stored in local storage
-      const allBookings = JSON.parse(localStorage.getItem("bookings")) || [];
-      return allBookings.find((booking) => booking.id === bookingId);
+      // Map over booking IDs to get corresponding booking details
+      const bookingPromises = carBookingIds.map((bookingId) => {
+        return getByKey(bookingId, "bookings");
+      });
+
+      // Resolve all booking promises
+      return Promise.all(bookingPromises)
+        .then((carBookings) => {
+          // Check if the selected period overlaps with any booking for the car
+          const overlap = carBookings.some((booking) => {
+            const bookingStartDate = booking.startDate;
+            const bookingEndDate = booking.endDate;
+            return endDate >= bookingStartDate && startDate <= bookingEndDate;
+          });
+
+          // If there is no overlap, the car is considered available
+          return !overlap;
+        })
+        .catch((error) => {
+          console.error("Error getting bookings:", error);
+          // Reject the promise if there is an error
+          return false;
+        });
     });
 
-    // Check if the selected period overlaps with any booking for the car
-    const overlap = carBookings.some((booking) => {
-      const bookingStartDate = booking.startDate;
-      const bookingEndDate = booking.endDate;
-
-      return endDate >= bookingStartDate && startDate <= bookingEndDate;
-    });
-
-    // If there is no overlap, the car is considered available
-    return !overlap;
+    // Resolve the promise with the array of available cars
+    Promise.all(availableCarsPromises)
+      .then((results) => {
+        const availableCars = cars.filter((car, index) => results[index]);
+        resolve(availableCars);
+      })
+      .catch((error) => {
+        reject(error); // Reject the promise if there is an error
+      });
   });
 }
 
@@ -259,11 +292,6 @@ function showPasswordToast() {
   });
 }
 
-function closeRentNowModal() {
-  const rentNowModal = document.getElementById("rent-now-modal");
-  rentNowModal.style.display = "none";
-}
-
 function confirmRentNow() {
   const username = localStorage.getItem("currentUser");
 
@@ -273,16 +301,11 @@ function confirmRentNow() {
     return;
   }
 
-  const existingBookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const bookingsArrayKey = "bookings"; // Adjust the key based on your structure
-
-  const newBookingId = existingBookings.length > 0 ? existingBookings[existingBookings.length - 1].id + 1 : 1;
-
   const startRentDate = rentStartDateInput.value;
   const endRentDate = rentEndDateInput.value;
 
   const bookingObject = {
-    id: newBookingId,
+    id: generateUUID(),
     startDate: startRentDate,
     endDate: endRentDate,
     uid: username,
@@ -291,59 +314,53 @@ function confirmRentNow() {
     bookingDate: currentDate,
   };
 
-  // Update bookings array in local storage
-  existingBookings.push(bookingObject);
-  localStorage.setItem(bookingsArrayKey, JSON.stringify(existingBookings));
+  // Update bookings array in IndexedDB
+  let newBookingId;
+  addToDB(bookingObject, "bookings", bookingObject.id, "put")
+    .then((bookingId) => {
+      newBookingId = bookingId.id;
+      // Retrieve existing cars from IndexedDB
+      return getByKey(selectedCar, "cars");
+    })
+    .then((car) => {
+      if (car) {
+        // Update bookings array in the selected car
+        car.bookings = car.bookings || [];
+        car.bookings.push(newBookingId);
 
-  // Retrieve existing cars from local storage
-  const existingCars = JSON.parse(localStorage.getItem("cars")) || [];
+        return addToDB(car, "cars", car.number, "put");
+      }
+    })
+    .then(() => {
+      // Retrieve existing users from IndexedDB
+      return getByKey(username, "users");
+    })
+    .then((currentUser) => {
+      if (currentUser) {
+        // Update bookings array in the user's profile
+        currentUser.bookings = currentUser.bookings || [];
+        currentUser.bookings.push(newBookingId);
 
-  // Find the selected car
-  const selectedCarObject = existingCars.find((car) => car.number === selectedCar);
+        return addToDB(currentUser, "users", username, "put");
+      }
+    })
+    .then(() => {
+      // Close the modal after confirmation
+      closeRentNowModal();
 
-  if (selectedCarObject) {
-    // Update bookings array in the selected car
-    selectedCarObject.bookings = selectedCarObject.bookings || [];
-    selectedCarObject.bookings.push(newBookingId);
-
-    // Update the car in the cars array
-    const updatedCarsArray = existingCars.map((car) => (car.number === selectedCar ? selectedCarObject : car));
-    localStorage.setItem("cars", JSON.stringify(updatedCarsArray));
-  }
-
-  // Retrieve existing users from local storage
-  const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
-
-  // Find the current user
-  const currentUser = existingUsers.find((user) => user.username === username);
-
-  if (currentUser) {
-    // Update bookings array in the user's profile
-    currentUser.bookings = currentUser.bookings || [];
-    currentUser.bookings.push(newBookingId);
-
-    // Update the user in the users array
-    const updatedUsersArray = existingUsers.map((user) => (user.username === username ? currentUser : user));
-    localStorage.setItem("users", JSON.stringify(updatedUsersArray));
-  }
-
-  // Close the modal after confirmation
-  closeRentNowModal();
-
-  // Display a success message or perform any additional actions
-  showPasswordToast().then(() => {
-    window.location.href = "bookings.html";
-  });
+      // Display a success message or perform any additional actions
+      return showPasswordToast();
+    })
+    .then(() => {
+      window.location.href = "bookings.html";
+    })
+    .catch((error) => {
+      console.error("Error confirming rent:", error);
+      // Handle errors appropriately
+    });
 }
 
-function dateDiffInDays(date1, date2) {
-  const oneDay = 24 * 60 * 60 * 1000; // hours * minutes * seconds * milliseconds
-
-  const firstDate = new Date(date1);
-  const secondDate = new Date(date2);
-
-  const diffInMilliseconds = Math.abs(firstDate - secondDate);
-  const diffInDays = Math.round(diffInMilliseconds / oneDay);
-
-  return diffInDays;
+function closeRentNowModal() {
+  const rentNowModal = document.getElementById("rent-now-modal");
+  rentNowModal.style.display = "none";
 }

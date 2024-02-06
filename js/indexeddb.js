@@ -127,3 +127,35 @@ function addToDB(data, objectStore, key, operation = "add") {
     };
   });
 }
+
+function getAllDocuments(objectStoreName) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("carRental", 1);
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains(objectStoreName)) {
+        reject(new Error(`Object store '${objectStoreName}' not found.`));
+        return;
+      }
+
+      const transaction = db.transaction(objectStoreName, "readonly");
+      const objectStore = transaction.objectStore(objectStoreName);
+      const getAllRequest = objectStore.getAll();
+
+      getAllRequest.onsuccess = (event) => {
+        const documents = event.target.result;
+        resolve(documents);
+      };
+
+      getAllRequest.onerror = (event) => {
+        reject(event.target.error);
+      };
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
