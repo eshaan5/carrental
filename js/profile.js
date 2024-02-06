@@ -19,21 +19,24 @@ function loadUserDetails() {
   // Retrieve username from local storage
   const storedUsername = localStorage.getItem("currentUser");
 
-  // Retrieve users array from local storage
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  // Retrieve user details from IndexedDB
+  getByKey(storedUsername, "users")
+    .then((user) => {
+      // Display welcome message with first and last name
+      const welcomeMessage = `Welcome, ${user.firstName || ""} ${user.lastName || ""}!`;
+      document.getElementById("welcome-message").innerText = welcomeMessage;
 
-  // Find the user in the array based on the stored username
-  const user = users.find((u) => u.username === storedUsername) || {};
-
-  // Display welcome message with first and last name
-  const welcomeMessage = `Welcome, ${user.firstName || ""} ${user.lastName || ""}!`;
-  document.getElementById("welcome-message").innerText = welcomeMessage;
-
-  // Display other user details
-  document.getElementById("username").innerText = user.username || "";
-  document.getElementById("email").innerText = user.email || "";
-  document.getElementById("phone").innerText = user.phone || "";
+      // Display other user details
+      document.getElementById("username").innerText = user.username || "";
+      document.getElementById("email").innerText = user.email || "";
+      document.getElementById("phone").innerText = user.phone || "";
+    })
+    .catch((error) => {
+      console.error("Error loading user details:", error);
+      // Handle error, such as displaying an error message to the user
+    });
 }
+
 
 function showChangePasswordForm() {
   // Hide user details and show change password form
@@ -71,40 +74,39 @@ function changePassword() {
     return;
   }
 
-  // Retrieve the users array from local storage
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-
-  // Retrieve the current user from the array using the username
+  // Retrieve the current user's username
   const username = localStorage.getItem("currentUser");
-  const currentUserIndex = users.findIndex((user) => user.username === username);
 
-  if (currentUserIndex === -1) {
-    // User not found in the array
-    passwordChangeError.textContent = "User not found.";
-    return;
-  }
+  // Retrieve the current user from IndexedDB
+  getByKey(username, "users")
+    .then((user) => {
+      // Check if the entered current password matches the stored password
+      if (currentPassword !== user.password) {
+        passwordChangeError.textContent = "Current password is incorrect.";
+        return;
+      }
 
-  // Check if the entered current password matches the stored password
-  if (currentPassword !== users[currentUserIndex].password) {
-    passwordChangeError.textContent = "Current password is incorrect.";
-    return;
-  }
+      // Update the user's password
+      user.password = newPassword;
 
-  // Update the user's password
-  users[currentUserIndex].password = newPassword;
+      // Store the updated user object back into IndexedDB
+      return addToDB(user, "users", username, "put");
+    })
+    .then(() => {
+      // Display a success message
+      showPasswordToast();
 
-  // Save the updated users array back to local storage
-  localStorage.setItem("users", JSON.stringify(users));
-
-  // Display a success message
-  showPasswordToast();
-
-  // Reset the form and display user details
-  currentPasswordInput.value = "";
-  newPasswordInput.value = "";
-  confirmNewPasswordInput.value = "";
-  document.getElementById("user-details").style.display = "block";
-  document.getElementById("change-password-form").style.display = "none";
+      // Reset the form and display user details
+      currentPasswordInput.value = "";
+      newPasswordInput.value = "";
+      confirmNewPasswordInput.value = "";
+      document.getElementById("user-details").style.display = "block";
+      document.getElementById("change-password-form").style.display = "none";
+    })
+    .catch((error) => {
+      console.error("Error changing password:", error);
+      passwordChangeError.textContent = "An error occurred while changing the password.";
+    });
 }
 
 function isValidPassword(password) {
