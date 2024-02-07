@@ -14,12 +14,19 @@ function displayCars() {
   const carsContainer = document.getElementById("cars-container");
   carsContainer.innerHTML = ""; // Clear previous results
 
-  const cars = JSON.parse(localStorage.getItem("cars")) ?? [];
+  getAllDocuments("cars")
+    .then((cars) => {
+      // Filter out cars with isDeleted property set to true
+      const activeCars = cars.filter((car) => !car.isDeleted);
 
-  cars.forEach((car) => {
-    const carCard = createCarCard(car);
-    carsContainer.appendChild(carCard);
-  });
+      activeCars.forEach((car) => {
+        const carCard = createCarCard(car);
+        carsContainer.appendChild(carCard);
+      });
+    })
+    .catch((error) => {
+      console.error("Error displaying cars:", error);
+    });
 }
 
 function createCarCard(car) {
@@ -48,33 +55,47 @@ function createCarCard(car) {
 }
 
 function deleteCar(carNumber) {
-  // Implement logic to delete the car with the given number
+  // Implement logic to mark the car as deleted in IndexedDB
   // Update local storage and re-display the cars
 
-  const cars = JSON.parse(localStorage.getItem("cars")) || [];
-  const car = cars.find((car) => car.number == carNumber);
+  getByKey(String(carNumber), "cars")
+    .then((car) => {
+      let cantDelete = false;
 
-  let cantDelete = false;
+      if (car.bookings) {
+        const currentDate = new Date().toISOString().split("T")[0];
+        car.bookings.forEach((bid) => {
+          getByKey(bid, "bookings").then((booking) => {
+            if (booking.endDate >= currentDate) cantDelete = true;
+          });
+        });
+      }
 
-  if (car.bookings) {
-    car.bookings.forEach((bid) => {
-      const booking = JSON.parse(localStorage.getItem("bookings")).find((booking) => booking.id == bid);
-      if (booking.endDate >= currentDate) cantDelete = true;
+      if (cantDelete) {
+        alert(`Car with number ${carNumber} can't be deleted, as it is currently in use`);
+        return;
+      }
+
+      const res = confirm(`Car with number ${carNumber} will be marked as deleted?`);
+
+      if (!res) return;
+
+      // Mark the car as deleted by updating its isDeleted property
+      car.isDeleted = true;
+
+      // Update the car in IndexedDB
+      addToDB(car, "cars", carNumber, "put")
+        .then(() => {
+          // Re-display the cars
+          displayCars();
+        })
+        .catch((error) => {
+          console.error("Error updating car:", error);
+        });
+    })
+    .catch((error) => {
+      console.error("Error retrieving car:", error);
     });
-  }
-
-  if (cantDelete) {
-    alert(`Car with number ${carNumber} can't be deleted, as it is currently in use`);
-    return;
-  }
-
-  const res = confirm(`Car with number ${carNumber} will be deleted?`);
-
-  if (!res) return;
-
-  const newCars = cars.filter((car) => car.number != carNumber);
-  localStorage.setItem("cars", JSON.stringify(newCars));
-  displayCars();
 }
 
 function openCarUpdateModal(carNumber) {
@@ -95,49 +116,69 @@ function closeCarUpdateModal() {
 function updateCar() {
   const carNumber = id;
 
-  const car = JSON.parse(localStorage.getItem("cars")).filter((car) => car.number == carNumber)[0] || null;
+  // Retrieve the car object from IndexedDB
+  getByKey(String(carNumber), "cars")
+    .then((car) => {
+      console.log(car);
+      const newImageInput = document.getElementById("new-image");
+      const newRentInput = document.getElementById("new-rent");
 
-  const newImageInput = document.getElementById("new-image");
-  const newRentInput = document.getElementById("new-rent");
-  const carUpdateModal = document.getElementById("car-update-modal");
+      // Basic validation
+      if (!newImageInput.files[0] && !newRentInput.value) {
+        alert("Please provide at least one detail to update.");
+        return;
+      }
 
-  // Basic validation
-  if (!newImageInput.files[0] && !newRentInput.value) {
-    alert("Please provide at least one detail to update.");
-    return;
-  }
+      if (newRentInput.value <= 0) {
+        alert("Rent amount should be greater than 0.");
+        return;
+      }
 
-  if (newRentInput.value <= 0) {
-    alert("Rent amount should be greater than 0.");
-    return;
-  }
+      const newRent = newRentInput.value || car.rentAmount;
 
-  const newRent = newRentInput.value || car.rentAmount;
+      // Read the new image file as a data URL
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const newImageDataURL = e.target.result;
 
-  // Read the new image file as a data URL
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const newImageDataURL = e.target.result;
+        // Update car details
+        car.image = newImageDataURL;
+        car.rentAmount = newRent;
 
-    // Update car details
-    updateCarDetails(carNumber, newImageDataURL, newRent);
+        // Update car in IndexedDB
+        addToDB(car, "cars", carNumber, "put")
+          .then(() => {
+            // Close the update modal and display the updated cars
+            closeCarUpdateModal();
+            displayCars();
+          })
+          .catch((error) => {
+            console.error("Error updating car:", error);
+          });
+      };
 
-    // Close the update modal and display the updated cars
-    closeCarUpdateModal();
-    displayCars();
-  };
+      // Check if a new image file is provided
+      if (newImageInput.files[0]) {
+        reader.readAsDataURL(newImageInput.files[0]);
+      } else {
+        // Update car details
+        car.rentAmount = newRent;
 
-  // Check if a new image file is provided
-  if (newImageInput.files[0]) {
-    reader.readAsDataURL(newImageInput.files[0]);
-  } else {
-    // Update car details
-    updateCarDetails(carNumber, car.image, newRent);
-
-    // Close the update modal and display the updated cars
-    closeCarUpdateModal();
-    displayCars();
-  }
+        // Update car in IndexedDB
+        addToDB(car, "cars", carNumber, "put")
+          .then(() => {
+            // Close the update modal and display the updated cars
+            closeCarUpdateModal();
+            displayCars();
+          })
+          .catch((error) => {
+            console.error("Error updating car:", error);
+          });
+      }
+    })
+    .catch((error) => {
+      console.error("Error retrieving car:", error);
+    });
 }
 
 function showToast() {
@@ -147,28 +188,6 @@ function showToast() {
   setTimeout(() => {
     passwordToast.classList.remove("show");
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
-}
-
-function updateCarDetails(carNumber, newImageDataURL, newRentValue) {
-  const cars = JSON.parse(localStorage.getItem("cars")) || [];
-  const selectedCar = cars.find((car) => car.number == carNumber);
-
-  if (selectedCar) {
-    // Update car details based on the provided values
-    if (newImageDataURL) {
-      selectedCar.image = newImageDataURL;
-    }
-
-    if (newRentValue) {
-      selectedCar.rentAmount = newRentValue;
-    }
-
-    // Save the updated car array back to local storage
-    localStorage.setItem("cars", JSON.stringify(cars));
-    showToast();
-  } else {
-    alert("Car not found. Please try again.");
-  }
 }
 
 // Rest of the code remains unchanged
@@ -181,25 +200,32 @@ function showBookings(carNumber) {
   const bookingsList = document.getElementById("bookings-list");
   bookingsList.innerHTML = ""; // Clear previous results
 
-  const cars = JSON.parse(localStorage.getItem("cars")) || [];
-  const selectedCar = cars.find((car) => car.number == carNumber);
-
-  if (selectedCar && selectedCar.bookings) {
-    selectedCar.bookings.forEach((bookingId) => {
-      const booking = getBookingById(bookingId);
-      if (booking) {
-        const bookingDetails = document.createElement("p");
-        bookingDetails.textContent = `Booking ID: ${booking.id}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
-        bookingsList.appendChild(bookingDetails);
+  // Retrieve the car from IndexedDB
+  getByKey(String(carNumber), "cars")
+    .then((selectedCar) => {
+      if (selectedCar && selectedCar.bookings) {
+        // Loop through each booking ID associated with the car
+        selectedCar.bookings.forEach((bookingId) => {
+          // Retrieve the booking details from IndexedDB using the booking ID
+          getByKey(bookingId, "bookings")
+            .then((booking) => {
+              if (booking) {
+                // Create a paragraph element to display booking details
+                const bookingDetails = document.createElement("p");
+                bookingDetails.textContent = `Booking ID: ${booking.id}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
+                // Append the booking details to the bookings list
+                bookingsList.appendChild(bookingDetails);
+              }
+            })
+            .catch((error) => {
+              console.error("Error retrieving booking:", error);
+            });
+        });
       }
+    })
+    .catch((error) => {
+      console.error("Error retrieving car:", error);
     });
-  }
-}
-
-function getBookingById(bookingId) {
-  // Implement logic to retrieve the booking details by ID from local storage
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  return bookings.find((booking) => booking.id == bookingId);
 }
 
 function closeBookingsModal() {
