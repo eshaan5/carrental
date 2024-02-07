@@ -46,11 +46,20 @@ function getDatesBetween(start, end) {
 }
 
 function getBookings(startDate, endDate) {
-  const bookings = JSON.parse(localStorage.getItem("bookings")).filter((booking) => {
-    return booking.bookingDate >= startDate && booking.bookingDate <= endDate;
+  return new Promise((resolve, reject) => {
+    getAllDocuments("bookings")
+      .then((bookings) => {
+        // Filter bookings within the specified date range
+        const filteredBookings = bookings.filter((booking) => {
+          const bookingDate = booking.bookingDate;
+          return bookingDate >= startDate && bookingDate <= endDate;
+        });
+        resolve(filteredBookings);
+      })
+      .catch((error) => {
+        reject(error);
+      });
   });
-
-  return bookings;
 }
 
 function generateAnalytics() {
@@ -68,89 +77,94 @@ function generateAnalytics() {
   const dates = getDatesBetween(startDate, endDate);
 
   // Call functions to generate charts and statistics based on the selected date range
-  generateDayWiseChart(startDate, endDate);
+  dayWiseSales(startDate, endDate);
   generateBookingsChart(startDate, endDate, dates);
-  generateTopRightSection(startDate, endDate, getBookings(startDate, endDate));
-  generateBottomLeftSection(getBookings(startDate, endDate));
-  generateBottomRightSection(getBookings(startDate, endDate));
+  getBookings(startDate, endDate).then((bookings) => {
+    generateTopRightSection(startDate, endDate, bookings);
+    generateBottomLeftSection(bookings);
+    generateBottomRightSection(bookings);
+  });
 }
 
 function generateBookingsChart(startDate = sevenDaysAgo(), endDate, dates) {
   const bookingsChartContainer = document.getElementById("bookings-chart").getContext("2d");
 
-  const bookings = JSON.parse(localStorage.getItem("bookings")).filter((booking) => {
-    return booking.bookingDate >= startDate && booking.bookingDate <= endDate;
-  });
+  getBookings(startDate, endDate)
+    .then((bookings) => {
+      console.log(bookings);
+      const bookingsPerDay = dates.map((date) => {
+        return bookings.filter((booking) => booking.bookingDate === date).length;
+      });
 
-  const bookingsPerDay = dates.map((date) => {
-    return bookings.filter((booking) => booking.bookingDate === date).length;
-  });
+      const revenuePerDay = dates.map((date) => {
+        return bookings
+          .filter((booking) => booking.bookingDate === date)
+          .reduce((total, booking) => {
+            return total + booking.totalAmount;
+          }, 0);
+      });
 
-  const revenuePerDay = dates.map((date) => {
-    return bookings
-      .filter((booking) => booking.bookingDate === date)
-      .reduce((total, booking) => {
-        return total + booking.totalAmount;
-      }, 0);
-  });
+      const data = {
+        labels: dates,
+        datasets: [
+          {
+            label: "Bookings per Day",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+            data: bookingsPerDay,
+          },
+          {
+            label: "Revenue per Day",
+            type: "line", // Set the type to 'line' to overlay it as a line chart
+            fill: false,
+            borderColor: "rgba(255, 99, 132, 1)",
+            data: revenuePerDay,
+            yAxisID: "y-axis-revenue", // Assign it to a different y-axis
+          },
+        ],
+      };
 
-  const data = {
-    labels: dates,
-    datasets: [
-      {
-        label: "Bookings per Day",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-        data: bookingsPerDay,
-      },
-      {
-        label: "Revenue per Day",
-        type: "line", // Set the type to 'line' to overlay it as a line chart
-        fill: false,
-        borderColor: "rgba(255, 99, 132, 1)",
-        data: revenuePerDay,
-        yAxisID: "y-axis-revenue", // Assign it to a different y-axis
-      },
-    ],
-  };
-
-  const options = {
-    scales: {
-      yAxes: [
-        {
-          id: "y-axis-bookings",
-          type: "linear",
-          position: "left",
+      const options = {
+        scales: {
+          yAxes: [
+            {
+              id: "y-axis-bookings",
+              type: "linear",
+              position: "left",
+            },
+            {
+              id: "y-axis-revenue",
+              type: "linear",
+              position: "right",
+              ticks: {
+                beginAtZero: true,
+              },
+            },
+          ],
         },
-        {
-          id: "y-axis-revenue",
-          type: "linear",
-          position: "right",
-          ticks: {
-            beginAtZero: true,
+        tooltips: {
+          callbacks: {
+            label: function (tooltipItem, data) {
+              const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || "";
+              const value = tooltipItem.yLabel;
+              return datasetLabel + ": " + value;
+            },
           },
         },
-      ],
-    },
-    tooltips: {
-      callbacks: {
-        label: function (tooltipItem, data) {
-          const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || "";
-          const value = tooltipItem.yLabel;
-          return datasetLabel + ": " + value;
-        },
-      },
-    },
-  };
+      };
 
-  const chart = new Chart(bookingsChartContainer, {
-    type: "bar",
-    data: data,
-    options: options,
-  });
+      const chart = new Chart(bookingsChartContainer, {
+        type: "bar",
+        data: data,
+        options: options,
+      });
 
-  charts.push(chart);
+      charts.push(chart);
+    })
+    .catch((error) => {
+      console.error("Error generating bookings chart:", error);
+    });
 }
 
 function generateTopRightSection(startDate, endDate, bookings) {
@@ -159,103 +173,122 @@ function generateTopRightSection(startDate, endDate, bookings) {
   }, 0);
 
   let totalLogins = 0;
+  let totalSignups = 0;
 
-  JSON.parse(localStorage.getItem("users")).forEach((user) => {
-    if (user.username !== "admin") totalLogins += user.logins.filter((login) => login >= startDate && login <= endDate).length;
-  });
+  // Retrieve users from IndexedDB
+  getAllDocuments("users")
+    .then((users) => {
+      // Calculate total logins and total signups within the date range
+      users.forEach((user) => {
+        if (user.username !== "admin") {
+          totalLogins += user.logins.filter((login) => login >= startDate && login <= endDate).length;
+          if (new Date(user.signupDate) >= new Date(startDate) && new Date(user.signupDate) <= new Date(endDate)) {
+            totalSignups++;
+          }
+        }
+      });
 
-  const totalSignups = JSON.parse(localStorage.getItem("users")).filter((user) => {
-    return user.signupDate >= startDate && user.signupDate <= endDate;
-  }).length;
+      // Calculate conversion rate
+      const conversionRate = totalLogins > 0 ? ((bookings.length / totalLogins) * 100).toFixed(2) : 0;
 
-  const conversionRate = totalLogins > 0 ? ((bookings.length / totalLogins) * 100).toFixed(2) : 0;
-
-  const topRightSection = document.getElementById("top-right-section");
-  topRightSection.innerHTML = `
+      // Update the HTML content of the top right section
+      const topRightSection = document.getElementById("top-right-section");
+      topRightSection.innerHTML = `
         <div style="display: flex; gap: 2rem;">
-        <div class="top-card" style="">
-            <h3>Total Revenue:</h3>
-            <p>${totalRevenue}</p>
-        </div>
-        <div class="top-card" style="">
-            <h3>Total Logins:</h3>
-            <p>${totalLogins}</p>
-        </div>
+          <div class="top-card" style="">
+              <h3>Total Revenue:</h3>
+              <p>${totalRevenue}</p>
+          </div>
+          <div class="top-card" style="">
+              <h3>Total Logins:</h3>
+              <p>${totalLogins}</p>
+          </div>
         </div>
         <div style="display: flex; gap: 2rem;">
-        <div class="top-card" style="">
-            <h3>Total Signups:</h3>
-            <p>${totalSignups}</p>
-        </div>
-        <div class="top-card" style="">
-            <h3>Conversion Rate:</h3>
-            <p>${conversionRate} %</p>
-        </div>
+          <div class="top-card" style="">
+              <h3>Total Signups:</h3>
+              <p>${totalSignups}</p>
+          </div>
+          <div class="top-card" style="">
+              <h3>Conversion Rate:</h3>
+              <p>${conversionRate} %</p>
+          </div>
         </div>
     `;
+    })
+    .catch((error) => {
+      console.error("Error generating top right section:", error);
+    });
 }
 
 function generateBottomLeftSection(bookings) {
   const users = {};
   const cars = [];
 
+  // Calculate total revenue per user and total bookings per car
   bookings.forEach((booking) => {
     users[booking.uid] ? (users[booking.uid] += booking.totalAmount) : (users[booking.uid] = booking.totalAmount);
   });
 
-  bookings.forEach((booking) => {
-    const car = JSON.parse(localStorage.getItem("cars")).find((car) => car.number === booking.cid);
-    if (cars.findIndex((c) => c.number === car.number) === -1) {
-      car.totalBookings = bookings.filter((booking) => booking.cid === car.number).length;
-      cars.push(car);
-    }
-  });
-
-  const usersArray = Object.entries(users);
-
-  usersArray.sort((a, b) => b[1] - a[1]);
+  // Sort users and cars based on revenue and total bookings respectively
+  const usersArray = Object.entries(users).sort((a, b) => b[1] - a[1]);
   cars.sort((a, b) => b.totalBookings - a.totalBookings);
 
+  // Update the HTML content of the bottom left section with the top users and cars
   const topUsersTable = document.getElementById("top-users-table");
   const topCarsTable = document.getElementById("top-cars-table");
 
-  // Display top 5 users based on revenue
-  topUsersTable.innerHTML = `
-        <tr>
-            <th>User</th>
-            <th>Total Revenue</th>
-        </tr>
-        ${usersArray
-          .slice(0, 5)
-          .map(
-            (entry) => `
-            <tr>
-                <td>${entry[0]}</td>
-                <td>${entry[1]}</td>
-            </tr>
-        `
-          )
-          .join("")}
-    `;
+  bookings.forEach((booking) => {
+    // Retrieve car details from IndexedDB
+    getByKey(booking.cid, "cars")
+      .then((car) => {
+        const existingCarIndex = cars.findIndex((c) => c.number === car.number);
+        if (existingCarIndex === -1) {
+          car.totalBookings = bookings.filter((b) => b.cid === car.number).length;
+          cars.push(car);
+        } else {
+          cars[existingCarIndex].totalBookings++;
+        }
+        topUsersTable.innerHTML = `
+    <tr>
+      <th>User</th>
+      <th>Total Revenue</th>
+    </tr>
+    ${usersArray
+      .slice(0, 5)
+      .map(
+        (entry) => `
+          <tr>
+            <td>${entry[0]}</td>
+            <td>${entry[1]}</td>
+          </tr>
+      `
+      )
+      .join("")}
+  `;
 
-  // Display top 3 cars based on bookings
-  topCarsTable.innerHTML = `
-        <tr>
-            <th>Car</th>
-            <th>Total Bookings</th>
-        </tr>
-        ${cars
-          .slice(0, 3)
-          .map(
-            (car) => `
-            <tr>
-                <td>${car.name} ${car.model}</td>
-                <td>${car.totalBookings}</td>
-            </tr>
-        `
-          )
-          .join("")}
-    `;
+        topCarsTable.innerHTML = `
+    <tr>
+      <th>Car</th>
+      <th>Total Bookings</th>
+    </tr>
+    ${cars
+      .slice(0, 3)
+      .map(
+        (car) => `
+          <tr>
+            <td>${car.name} ${car.model}</td>
+            <td>${car.totalBookings}</td>
+          </tr>
+      `
+      )
+      .join("")}
+  `;
+      })
+      .catch((error) => {
+        console.error("Error retrieving car details:", error);
+      });
+  });
 }
 
 function generateBottomRightSection(bookings) {
@@ -307,68 +340,85 @@ function generateBottomRightSection(bookings) {
 
   const carWiseBookings = {};
 
-  JSON.parse(localStorage.getItem("cars")).forEach((car) => {
-    const carBookings = bookings.filter((booking) => booking.cid === car.number);
-    carWiseBookings[car.name] ? (carBookings[car.name] += carBookings.length) : (carWiseBookings[car.name] = carBookings.length);
-  });
+  // Retrieve all cars from IndexedDB
+  getAllDocuments("cars")
+    .then((cars) => {
+      // Iterate over each car
+      cars.forEach((car) => {
+        // Filter bookings for the current car
+        const carBookings = bookings.filter((booking) => booking.cid === car.number);
+        // Update carWiseBookings with the count of bookings for the current car
+        carWiseBookings[car.name] ? (carWiseBookings[car.name] += carBookings.length) : (carWiseBookings[car.name] = carBookings.length);
+      });
 
-  const percentValues = Object.values(carWiseBookings).map((value) => ((value / bookings.length) * 100).toFixed(2));
+      // Calculate percentage values
+      const percentValues = Object.values(carWiseBookings).map((value) => ((value / bookings.length) * 100).toFixed(2));
 
-  // Example data - replace with actual data from local storage
-  const data = {
-    labels: Object.keys(carWiseBookings),
-    datasets: [
-      {
-        data: percentValues,
-        backgroundColor: colors,
-      },
-    ],
-  };
+      // Prepare data for the chart
+      const data = {
+        labels: Object.keys(carWiseBookings),
+        datasets: [
+          {
+            data: percentValues,
+            backgroundColor: colors,
+          },
+        ],
+      };
 
-  const chart = new Chart(bottomRightSectionContainer, {
-    type: "pie",
-    data: data,
-  });
-  charts.push(chart);
+      // Create and render the pie chart
+      const chart = new Chart(bottomRightSectionContainer, {
+        type: "pie",
+        data: data,
+      });
+      charts.push(chart);
+    })
+    .catch((error) => {
+      console.error("Error retrieving car details:", error);
+    });
 }
 
 function dayWiseSales(startDate, endDate) {
   const dates = getDatesBetween(startDate, endDate);
-
   const labelArray = [];
 
   for (let i = 1; i <= Math.ceil(dates.length / 7); i++) {
-    labelArray.push(`Occurence ${i}`);
+    labelArray.push(`Occurrence ${i}`);
   }
 
   const res = [[], [], [], [], [], [], []];
 
-  dates.forEach((date) => {
-    const day = new Date(date).getDay();
+  return getAllDocuments("bookings")
+    .then((allBookings) => {
+      dates.forEach((date) => {
+        const day = new Date(date).getDay();
 
-    const bookings = JSON.parse(localStorage.getItem("bookings")).filter((booking) => {
-      return booking.bookingDate === date;
+        const bookings = allBookings.filter((booking) => {
+          return booking.bookingDate === date;
+        });
+
+        res[day].push(bookings.length);
+      });
+
+      res.forEach((day) => {
+        while (day.length < labelArray.length) {
+          day.push(0);
+        }
+      });
+
+      generateDayWiseChart(startDate, endDate, res);
+    })
+    .catch((error) => {
+      console.error("Error retrieving bookings:", error);
+      return [];
     });
-
-    res[day].push(bookings.length);
-  });
-
-  res.forEach((day) => {
-    while (day.length < labelArray.length) {
-      day.push(0);
-    }
-  });
-  return res;
 }
 
-function generateDayWiseChart(startDate, endDate) {
+function generateDayWiseChart(startDate, endDate, res) {
   const labelArray = [];
 
   for (let i = 0; i < Math.ceil(getDatesBetween(startDate, endDate).length / 7); i++) {
     labelArray.push(`Occurence ${i + 1}`);
   }
-
-  const res = dayWiseSales(startDate, endDate);
   // Sample data for 7 line charts
   const datasets = [
     { label: "Sunday", data: res[0], borderColor: "rgba(255, 99, 132, 1)", fill: false },
