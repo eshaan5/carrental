@@ -3,6 +3,27 @@ if (!localStorage.getItem("currentUser")) {
   window.location.href = "login.html";
 }
 
+const currentPasswordInput = document.getElementById("current-password");
+const newPasswordInput = document.getElementById("new-password");
+const confirmNewPasswordInput = document.getElementById("confirm-new-password");
+const passwordChangeError = document.getElementById("password-change-error");
+
+newPasswordInput.addEventListener("input", () => {
+  passwordChangeError.textContent = "";
+  if (!isValidPassword(newPasswordInput.value)) {
+    passwordChangeError.textContent = "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit.";
+  } else {
+    passwordChangeError.textContent = "";
+  }
+});
+
+confirmNewPasswordInput.addEventListener("input", () => {
+  passwordChangeError.textContent = "";
+  if (newPasswordInput.value !== confirmNewPasswordInput.value) {
+    passwordChangeError.textContent = "New passwords do not match.";
+  }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   // Load user details when the page is loaded
   loadUserDetails();
@@ -37,7 +58,6 @@ function loadUserDetails() {
     });
 }
 
-
 function showChangePasswordForm() {
   // Hide user details and show change password form
   document.getElementById("user-details").style.display = "none";
@@ -45,11 +65,6 @@ function showChangePasswordForm() {
 }
 
 function changePassword() {
-  const currentPasswordInput = document.getElementById("current-password");
-  const newPasswordInput = document.getElementById("new-password");
-  const confirmNewPasswordInput = document.getElementById("confirm-new-password");
-  const passwordChangeError = document.getElementById("password-change-error");
-
   // Reset previous error messages
   passwordChangeError.textContent = "";
 
@@ -111,15 +126,18 @@ function changePassword() {
 
 function isValidPassword(password) {
   // Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit
+  if (password === "")
+    return true;
+
   const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+<>?])[A-Za-z\d!@#$%^&*()_+<>?]{8,}$/;
   return passwordRegex.test(password);
 }
 
 function showPasswordToast() {
-  const passwordToast = document.getElementById('password-toast');
-  passwordToast.classList.add('show');
+  const passwordToast = document.getElementById("password-toast");
+  passwordToast.classList.add("show");
 
   setTimeout(() => {
-    passwordToast.classList.remove('show');
+    passwordToast.classList.remove("show");
   }, 5000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }

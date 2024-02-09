@@ -41,15 +41,19 @@ function createCarCard(car) {
 
   // Display car information
   carCard.innerHTML += `
-    <p><strong>Number:</strong> ${car.number}</p>
-        <p><strong>Name:</strong> ${car.name}</p>
-        <p><strong>Model:</strong> ${car.model}</p>
-        <p><strong>Year:</strong> ${car.year}</p>
-        <p><strong>Rent Amount:</strong> ₹${car.rentAmount} per day</p>
-        <button onclick="deleteCar(${car.number})">Delete</button>
-        <button onclick="openCarUpdateModal(${car.number})">Update</button>
-        <button onclick="showBookings(${car.number})">Show Bookings</button>
-    `;
+    <div class="car-details">
+      <p><strong>Number:</strong> ${car.number}</p>
+      <p><strong>Name:</strong> ${car.name}</p>
+      <p><strong>Model:</strong> ${car.model}</p>
+      <p><strong>Year:</strong> ${car.year}</p>
+      <p><strong>Rent Amount:</strong> ₹${car.rentAmount} per day</p>
+    </div>
+    <div class="action-icons">
+      <i class="fas fa-edit" onclick="openCarUpdateModal(${car.number})"></i>
+      <i class="fas fa-trash-alt" onclick="deleteCar(${car.number})"></i>
+    </div>
+    <button class="show-bookings-btn" onclick="showBookings(${car.number})">Show Bookings</button>
+  `;
 
   return carCard;
 }

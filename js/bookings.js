@@ -59,6 +59,7 @@ function displayTrips(containerId, trips) {
             <div>${carDetails}</div>
             <p><strong>Start Date:</strong> ${trip.startDate}</p>
             <p><strong>End Date:</strong> ${trip.endDate}</p>
+            <p><strong>Price:</strong> ₹ ${trip.totalAmount}</p>
             <!-- Add more details as needed -->
           `;
 

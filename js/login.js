@@ -68,11 +68,16 @@ function showLoginForm() {
 }
 
 function regexTest(regex, field, message, index = 6) {
+  if (field.value === "") {
+    document.getElementsByClassName("error")[index].innerText = "";
+    return false;
+  }
+
   if (!regex.test(field.value)) {
     document.getElementsByClassName("error")[index].innerText = message;
     return false;
   }
-
+  document.getElementsByClassName("error")[index].innerText = "";
   return true;
 }
 
