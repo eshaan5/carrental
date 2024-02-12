@@ -75,7 +75,7 @@ function generateAnalytics() {
   const endDate = document.getElementById("end-date").value;
 
   const dates = getDatesBetween(startDate, endDate);
-
+  
   // Call functions to generate charts and statistics based on the selected date range
   dayWiseSales(startDate, endDate);
   generateBookingsChart(startDate, endDate, dates);
@@ -83,6 +83,68 @@ function generateAnalytics() {
     generateTopRightSection(startDate, endDate, bookings);
     generateBottomLeftSection(bookings);
     generateBottomRightSection(bookings);
+    generateRevenueByTime(startDate, endDate, bookings); // New
+  });
+}
+
+function generateRevenueByTime(startDate, endDate, bookings) {
+
+  const selectedTime = document.getElementById("selected-time").value || "12:00"; // Default value is 12 PM
+
+  const revenueByTimeContainer = document.getElementById("revenue-by-time-chart").getContext("2d");
+
+  // Filter bookings for the selected time on start and end dates only
+  const bookingsByStartTime = getBookingsByTime(startDate, selectedTime, bookings);
+  const totalRevenueStart = bookingsByStartTime.reduce((total, booking) => total + booking.totalAmount, 0);
+
+  const bookingsByEndTime = getBookingsByTime(endDate, selectedTime, bookings);
+  const totalRevenueEnd = bookingsByEndTime.reduce((total, booking) => total + booking.totalAmount, 0);
+
+  const revenueData = [totalRevenueStart, totalRevenueEnd];
+
+  // Prepare data for the chart
+  const data = {
+    labels: [startDate, endDate],
+    datasets: [
+      {
+        label: "Revenue by Time",
+        backgroundColor: ["rgba(54, 162, 235, 0.2)", "rgba(54, 162, 235, 0.2)"],
+        borderColor: ["rgba(54, 162, 235, 1)", "rgba(54, 162, 235, 1)"],
+        borderWidth: 1,
+        data: revenueData,
+      },
+    ],
+  };
+
+  const options = {
+    scales: {
+      yAxes: [
+        {
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      ],
+    },
+  };
+
+  const chart = new Chart(revenueByTimeContainer, {
+    type: "bar",
+    data: data,
+    options: options,
+  });
+
+  charts.push(chart);
+}
+
+function getBookingsByTime(date, selectedTime, bookings) {
+  // Filter bookings for the selected time on the given date
+  return bookings.filter((booking) => {
+    // Combine bookingDate and bookingTime to create a valid Date object
+    const bookingDateTime = new Date(`${booking.bookingDate}T${booking.bookingTime}`);
+    const selectedDateTime = new Date(`${date}T${selectedTime}`);
+    // Compare the time component only since bookingDate might be different
+    return bookingDateTime.getHours() === selectedDateTime.getHours() && bookingDateTime.getMinutes() === selectedDateTime.getMinutes();
   });
 }
 

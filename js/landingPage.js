@@ -11,7 +11,11 @@ const endDateInput = document.getElementById("end-date");
 const rentStartDateInput = document.getElementById("rent-start-date");
 const rentEndDateInput = document.getElementById("rent-end-date");
 
-const currentDate = new Date().toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+const currentDateObject = new Date();
+const currentDate = currentDateObject.toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+const hours = currentDateObject.getHours().toString().padStart(2, "0"); // Ensure two digits for hours
+const minutes = currentDateObject.getMinutes().toString().padStart(2, "0"); // Ensure two digits for minutes
+const currentTime = `${hours}:${minutes}`;
 
 document.addEventListener("DOMContentLoaded", () => {
   currentDateObject = new Date(currentDate);
@@ -312,6 +316,7 @@ function confirmRentNow() {
     cid: selectedCar,
     totalAmount: totalRent,
     bookingDate: currentDate,
+    bookingTime: currentTime,
   };
 
   // Update bookings array in IndexedDB

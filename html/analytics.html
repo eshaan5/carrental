@@ -65,6 +65,15 @@
       </div>
     </div>
 
+    <div id="additional-container">
+      <h2>Revenue by Time</h2>
+      <div id="time-input-container">
+        <label for="selected-time">Select Time:</label>
+        <input type="time" id="selected-time" value="12:00" step="1800" required />
+      </div>
+      <canvas id="revenue-by-time-chart" style="background-color: #fff; width: 50%; height: 400px; padding: 1rem"></canvas>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/util.js"></script>
     <script src="../js/indexeddb.js"></script>
