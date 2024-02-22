@@ -1,4 +1,4 @@
-if (!localStorage.getItem("currentUser")) {
+if (!JSON.parse(localStorage.getItem("currentUser"))) {
   // User not logged in, redirect to login page
   window.location.href = "login.html";
 }
@@ -7,52 +7,54 @@ document.addEventListener("DOMContentLoaded", function () {
   displayCars();
 });
 
-let id;
-const currentDate = new Date().toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+var id;
+var currentDate = new Date().toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
 
 function displayCars() {
-  const carsContainer = document.getElementById("cars-container");
+  var carsContainer = document.getElementById("cars-container");
   carsContainer.innerHTML = ""; // Clear previous results
 
   getAllDocuments("cars")
-    .then((cars) => {
+    .then(function (cars) {
       // Filter out cars with isDeleted property set to true
-      const activeCars = cars.filter((car) => !car.isDeleted);
+      var activeCars = cars.filter(function (car) {
+        return !car.isDeleted;
+      });
 
-      activeCars.forEach((car) => {
-        const carCard = createCarCard(car);
+      activeCars.forEach(function (car) {
+        var carCard = createCarCard(car);
         carsContainer.appendChild(carCard);
       });
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error displaying cars:", error);
     });
 }
 
 function createCarCard(car) {
-  const carCard = document.createElement("div");
+  var carCard = document.createElement("div");
   carCard.classList.add("car-card");
 
   // Add car image
-  const carImage = document.createElement("img");
+  var carImage = document.createElement("img");
   carImage.src = car.image;
-  carImage.alt = car.name;
+  carImage.alt = car.carName;
   carCard.appendChild(carImage);
 
   // Display car information
   carCard.innerHTML += `
     <div class="car-details">
       <p><strong>Number:</strong> ${car.number}</p>
-      <p><strong>Name:</strong> ${car.name}</p>
-      <p><strong>Model:</strong> ${car.model}</p>
-      <p><strong>Year:</strong> ${car.year}</p>
+      <p><strong>Name:</strong> ${car.carName}</p>
+      <p><strong>Model:</strong> ${car.carModel}</p>
+      <p><strong>Year:</strong> ${car.carYear}</p>
       <p><strong>Rent Amount:</strong> ₹${car.rentAmount} per day</p>
     </div>
     <div class="action-icons">
-      <i class="fas fa-edit" onclick="openCarUpdateModal(${car.number})"></i>
-      <i class="fas fa-trash-alt" onclick="deleteCar(${car.number})"></i>
+      <i class="fas fa-edit" onclick="openCarUpdateModal('${car.number}')"></i>
+      <i class="fas fa-trash-alt" onclick="deleteCar('${car.number}')"></i>
     </div>
-    <button class="show-bookings-btn" onclick="showBookings(${car.number})">Show Bookings</button>
+    <button class="show-bookings-btn" onclick="showBookings('${car.number}')">Show Bookings</button>
   `;
 
   return carCard;
@@ -62,54 +64,54 @@ function deleteCar(carNumber) {
   // Implement logic to mark the car as deleted in IndexedDB
   // Update local storage and re-display the cars
 
-  getByKey(String(carNumber), "cars")
-    .then((car) => {
-      let cantDelete = false;
+  getByKey(String(carNumber), "cars").then(function (car) {
+    var toDelete = true;
 
-      if (car.bookings) {
-        const currentDate = new Date().toISOString().split("T")[0];
-        car.bookings.forEach((bid) => {
-          getByKey(bid, "bookings").then((booking) => {
-            if (booking.endDate >= currentDate) cantDelete = true;
+    // check if car has any bookings
+    getAllDocumentsByIndex("cid", car.number, "bookings")
+      .then(function (bookings) {
+        bookings.some(function (booking) {
+          if (new Date(booking.endDate) > new Date()) {
+            toDelete = false;
+          }
+        });
+
+        if (!toDelete) {
+          alert("Car has active bookings. Cannot delete.");
+          return;
+        }
+
+        var res = confirm(`Car with number ${carNumber} will be marked as deleted?`);
+
+        if (!res) return;
+
+        // Mark the car as deleted by updating its isDeleted property
+        car.isDeleted = true;
+
+        // Update the car in IndexedDB
+        addToDB(car, "cars", carNumber, "put")
+          .then(function () {
+            // Re-display the cars
+            displayCars();
+          })
+          .catch(function (error) {
+            console.error("Error updating car:", error);
           });
-        });
-      }
-
-      if (cantDelete) {
-        alert(`Car with number ${carNumber} can't be deleted, as it is currently in use`);
-        return;
-      }
-
-      const res = confirm(`Car with number ${carNumber} will be marked as deleted?`);
-
-      if (!res) return;
-
-      // Mark the car as deleted by updating its isDeleted property
-      car.isDeleted = true;
-
-      // Update the car in IndexedDB
-      addToDB(car, "cars", carNumber, "put")
-        .then(() => {
-          // Re-display the cars
-          displayCars();
-        })
-        .catch((error) => {
-          console.error("Error updating car:", error);
-        });
-    })
-    .catch((error) => {
-      console.error("Error retrieving car:", error);
-    });
+      })
+      .catch(function (error) {
+        console.error("Error retrieving car:", error);
+      });
+  });
 }
 
 function openCarUpdateModal(carNumber) {
   id = carNumber;
-  const carUpdateModal = document.getElementById("car-update-modal");
+  var carUpdateModal = document.getElementById("car-update-modal");
   carUpdateModal.style.display = "block";
 }
 
 function closeCarUpdateModal() {
-  const carUpdateModal = document.getElementById("car-update-modal");
+  var carUpdateModal = document.getElementById("car-update-modal");
   carUpdateModal.style.display = "none";
 
   // Reset input fields on modal close
@@ -118,14 +120,13 @@ function closeCarUpdateModal() {
 }
 
 function updateCar() {
-  const carNumber = id;
+  var carNumber = id;
 
   // Retrieve the car object from IndexedDB
   getByKey(String(carNumber), "cars")
-    .then((car) => {
-      console.log(car);
-      const newImageInput = document.getElementById("new-image");
-      const newRentInput = document.getElementById("new-rent");
+    .then(function (car) {
+      var newImageInput = document.getElementById("new-image");
+      var newRentInput = document.getElementById("new-rent");
 
       // Basic validation
       if (!newImageInput.files[0] && !newRentInput.value) {
@@ -138,12 +139,12 @@ function updateCar() {
         return;
       }
 
-      const newRent = newRentInput.value || car.rentAmount;
+      var newRent = newRentInput.value || car.rentAmount;
 
       // Read the new image file as a data URL
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onload = function (e) {
-        const newImageDataURL = e.target.result;
+        var newImageDataURL = e.target.result;
 
         // Update car details
         car.image = newImageDataURL;
@@ -151,12 +152,12 @@ function updateCar() {
 
         // Update car in IndexedDB
         addToDB(car, "cars", carNumber, "put")
-          .then(() => {
+          .then(function () {
             // Close the update modal and display the updated cars
             closeCarUpdateModal();
             displayCars();
           })
-          .catch((error) => {
+          .catch(function (error) {
             console.error("Error updating car:", error);
           });
       };
@@ -170,26 +171,26 @@ function updateCar() {
 
         // Update car in IndexedDB
         addToDB(car, "cars", carNumber, "put")
-          .then(() => {
+          .then(function () {
             // Close the update modal and display the updated cars
             closeCarUpdateModal();
             displayCars();
           })
-          .catch((error) => {
+          .catch(function (error) {
             console.error("Error updating car:", error);
           });
       }
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error retrieving car:", error);
     });
 }
 
 function showToast() {
-  const passwordToast = document.getElementById("password-toast");
+  var passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
-  setTimeout(() => {
+  setTimeout(function () {
     passwordToast.classList.remove("show");
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }
@@ -198,41 +199,32 @@ function showToast() {
 
 function showBookings(carNumber) {
   // Implement logic to retrieve and display bookings for the selected car
-  const bookingsModal = document.getElementById("bookings-modal");
+  var bookingsModal = document.getElementById("bookings-modal");
   bookingsModal.style.display = "block";
 
-  const bookingsList = document.getElementById("bookings-list");
+  var bookingsList = document.getElementById("bookings-list");
   bookingsList.innerHTML = ""; // Clear previous results
 
   // Retrieve the car from IndexedDB
-  getByKey(String(carNumber), "cars")
-    .then((selectedCar) => {
-      if (selectedCar && selectedCar.bookings) {
-        // Loop through each booking ID associated with the car
-        selectedCar.bookings.forEach((bookingId) => {
-          // Retrieve the booking details from IndexedDB using the booking ID
-          getByKey(bookingId, "bookings")
-            .then((booking) => {
-              if (booking) {
-                // Create a paragraph element to display booking details
-                const bookingDetails = document.createElement("p");
-                bookingDetails.textContent = `Booking ID: ${booking.id}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
-                // Append the booking details to the bookings list
-                bookingsList.appendChild(bookingDetails);
-              }
-            })
-            .catch((error) => {
-              console.error("Error retrieving booking:", error);
-            });
-        });
+  getAllDocumentsByIndex("cid", carNumber, "bookings")
+    .then(function (bookings) {
+      if (!bookings.length) {
+        bookingsList.innerHTML = "<p>No bookings found.</p>";
+        return;
       }
+      bookings.forEach(function (booking) {
+        var bookingDetails = document.createElement("p");
+        bookingDetails.textContent = `Booking ID: ${booking.id}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
+        // Append the booking details to the bookings list
+        bookingsList.appendChild(bookingDetails);
+      });
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error retrieving car:", error);
     });
 }
 
 function closeBookingsModal() {
-  const bookingsModal = document.getElementById("bookings-modal");
+  var bookingsModal = document.getElementById("bookings-modal");
   bookingsModal.style.display = "none";
 }
