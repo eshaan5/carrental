@@ -1,4 +1,4 @@
-if (!localStorage.getItem("currentUser")) {
+if (!JSON.parse(localStorage.getItem("currentUser"))) {
   // User not logged in, redirect to login page
   window.location.href = "login.html";
 }
@@ -8,7 +8,7 @@ const newPasswordInput = document.getElementById("new-password");
 const confirmNewPasswordInput = document.getElementById("confirm-new-password");
 const passwordChangeError = document.getElementById("password-change-error");
 
-newPasswordInput.addEventListener("input", () => {
+newPasswordInput.addEventListener("input", function () {
   passwordChangeError.textContent = "";
   if (!isValidPassword(newPasswordInput.value)) {
     passwordChangeError.textContent = "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit.";
@@ -17,7 +17,7 @@ newPasswordInput.addEventListener("input", () => {
   }
 });
 
-confirmNewPasswordInput.addEventListener("input", () => {
+confirmNewPasswordInput.addEventListener("input", function () {
   passwordChangeError.textContent = "";
   if (newPasswordInput.value !== confirmNewPasswordInput.value) {
     passwordChangeError.textContent = "New passwords do not match.";
@@ -38,11 +38,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadUserDetails() {
   // Retrieve username from local storage
-  const storedUsername = localStorage.getItem("currentUser");
+  const storedUsername = JSON.parse(localStorage.getItem("currentUser")).username;
 
   // Retrieve user details from IndexedDB
   getByKey(storedUsername, "users")
-    .then((user) => {
+    .then(function (user) {
       // Display welcome message with first and last name
       const welcomeMessage = `Welcome, ${user.firstName || ""} ${user.lastName || ""}!`;
       document.getElementById("welcome-message").innerText = welcomeMessage;
@@ -52,7 +52,7 @@ function loadUserDetails() {
       document.getElementById("email").innerText = user.email || "";
       document.getElementById("phone").innerText = user.phone || "";
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error loading user details:", error);
       // Handle error, such as displaying an error message to the user
     });
@@ -90,11 +90,11 @@ function changePassword() {
   }
 
   // Retrieve the current user's username
-  const username = localStorage.getItem("currentUser");
+  const username = JSON.parse(localStorage.getItem("currentUser")).username;
 
   // Retrieve the current user from IndexedDB
   getByKey(username, "users")
-    .then((user) => {
+    .then(function (user) {
       // Check if the entered current password matches the stored password
       if (currentPassword !== user.password) {
         passwordChangeError.textContent = "Current password is incorrect.";
@@ -107,7 +107,7 @@ function changePassword() {
       // Store the updated user object back into IndexedDB
       return addToDB(user, "users", username, "put");
     })
-    .then(() => {
+    .then(function () {
       // Display a success message
       showPasswordToast();
 
@@ -118,7 +118,7 @@ function changePassword() {
       document.getElementById("user-details").style.display = "block";
       document.getElementById("change-password-form").style.display = "none";
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error changing password:", error);
       passwordChangeError.textContent = "An error occurred while changing the password.";
     });
@@ -126,8 +126,7 @@ function changePassword() {
 
 function isValidPassword(password) {
   // Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit
-  if (password === "")
-    return true;
+  if (password === "") return true;
 
   const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+<>?])[A-Za-z\d!@#$%^&*()_+<>?]{8,}$/;
   return passwordRegex.test(password);
@@ -137,7 +136,7 @@ function showPasswordToast() {
   const passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
-  setTimeout(() => {
+  setTimeout(function () {
     passwordToast.classList.remove("show");
   }, 5000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }
