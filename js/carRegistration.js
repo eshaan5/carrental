@@ -4,7 +4,7 @@ if (!JSON.parse(localStorage.getItem("currentUser"))) {
 }
 
 function showToast() {
-  const passwordToast = document.getElementById("password-toast");
+  var passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
   setTimeout(function () {
@@ -13,12 +13,12 @@ function showToast() {
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }
 
-let formValid = false; // Variable to track form validity
+var formValid = false; // Variable to track form validity
 
 // Event listeners for input fields to show errors dynamically
 document.getElementById("car-name").addEventListener("input", function () {
-  const carNameInput = document.getElementById("car-name");
-  const formErrors = document.getElementById("form-errors");
+  var carNameInput = document.getElementById("car-name");
+  var formErrors = document.getElementById("form-errors");
   if (!carNameInput.value.trim()) {
     formErrors.textContent = "Please enter car name.";
     formValid = false; // Set formValid to false if error exists
@@ -30,8 +30,8 @@ document.getElementById("car-name").addEventListener("input", function () {
 });
 
 document.getElementById("car-number").addEventListener("input", function () {
-  const carNumberInput = document.getElementById("car-number");
-  const formErrors = document.getElementById("form-errors");
+  var carNumberInput = document.getElementById("car-number");
+  var formErrors = document.getElementById("form-errors");
   if (!carNumberInput.value.trim()) {
     formErrors.textContent = "Please enter car number.";
     formValid = false;
@@ -46,8 +46,8 @@ document.getElementById("car-number").addEventListener("input", function () {
 });
 
 document.getElementById("car-model").addEventListener("input", function () {
-  const carModelInput = document.getElementById("car-model");
-  const formErrors = document.getElementById("form-errors");
+  var carModelInput = document.getElementById("car-model");
+  var formErrors = document.getElementById("form-errors");
   if (!carModelInput.value.trim()) {
     formErrors.textContent = "Please enter car model.";
     formValid = false;
@@ -59,9 +59,9 @@ document.getElementById("car-model").addEventListener("input", function () {
 });
 
 document.getElementById("car-year").addEventListener("input", function () {
-  const carYearInput = document.getElementById("car-year");
-  const formErrors = document.getElementById("form-errors");
-  const currentYear = new Date().getFullYear();
+  var carYearInput = document.getElementById("car-year");
+  var formErrors = document.getElementById("form-errors");
+  var currentYear = new Date().getFullYear();
   if (!carYearInput.value.trim()) {
     formErrors.textContent = "Please enter car year.";
     formValid = false;
@@ -79,8 +79,8 @@ document.getElementById("car-year").addEventListener("input", function () {
 });
 
 document.getElementById("rent-amount").addEventListener("input", function () {
-  const rentAmountInput = document.getElementById("rent-amount");
-  const formErrors = document.getElementById("form-errors");
+  var rentAmountInput = document.getElementById("rent-amount");
+  var formErrors = document.getElementById("form-errors");
   if (!rentAmountInput.value.trim()) {
     formErrors.textContent = "Please enter rent amount.";
     formValid = false;
@@ -95,8 +95,8 @@ document.getElementById("rent-amount").addEventListener("input", function () {
 });
 
 document.getElementById("car-image-upload").addEventListener("change", function () {
-  const carImageUploadInput = document.getElementById("car-image-upload");
-  const formErrors = document.getElementById("form-errors");
+  var carImageUploadInput = document.getElementById("car-image-upload");
+  var formErrors = document.getElementById("form-errors");
   if (!carImageUploadInput.files[0]) {
     formErrors.textContent = "Please upload an image.";
     formValid = false;
@@ -109,7 +109,7 @@ document.getElementById("car-image-upload").addEventListener("change", function 
 
 // Function to toggle save button based on form validity
 function toggleSaveButton() {
-  const saveButton = document.getElementById("save-button");
+  var saveButton = document.getElementById("save-button");
   if (formValid) {
     saveButton.disabled = false; // Enable save button if form is valid
   } else {
@@ -118,19 +118,19 @@ function toggleSaveButton() {
 }
 
 function saveCarDetails() {
-  const carNameInput = document.getElementById("car-name");
-  const carNumberInput = document.getElementById("car-number");
-  const carModelInput = document.getElementById("car-model");
-  const carYearInput = document.getElementById("car-year");
-  const carImageUploadInput = document.getElementById("car-image-upload");
-  const rentAmountInput = document.getElementById("rent-amount");
-  const formErrors = document.getElementById("form-errors");
+  var carNameInput = document.getElementById("car-name");
+  var carNumberInput = document.getElementById("car-number");
+  var carModelInput = document.getElementById("car-model");
+  var carYearInput = document.getElementById("car-year");
+  var carImageUploadInput = document.getElementById("car-image-upload");
+  var rentAmountInput = document.getElementById("rent-amount");
+  var formErrors = document.getElementById("form-errors");
 
-  const carName = carNameInput.value;
-  const carNumber = carNumberInput.value;
-  const carModel = carModelInput.value;
-  const carYear = carYearInput.value;
-  const rentAmount = rentAmountInput.value;
+  var carName = carNameInput.value;
+  var carNumber = carNumberInput.value;
+  var carModel = carModelInput.value;
+  var carYear = carYearInput.value;
+  var rentAmount = rentAmountInput.value;
 
   // Basic validation
   if (!carName || !carModel || !carYear || !carImageUploadInput.files[0] || !rentAmount || !carNumber) {
@@ -166,15 +166,15 @@ function saveCarDetails() {
     formErrors.textContent = ""; // Clear errors if any
 
     // Get the uploaded image file
-    const imageFile = carImageUploadInput.files[0];
+    var imageFile = carImageUploadInput.files[0];
 
     // Read the image file as a data URL
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = function (e) {
-      const imageDataURL = e.target.result;
+      var imageDataURL = e.target.result;
 
       // Create a new car object
-      const newCar = {
+      var newCar = {
         carName: carName,
         number: carNumber,
         carModel: carModel,

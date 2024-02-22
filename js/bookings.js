@@ -1,24 +1,24 @@
-if (!localStorage.getItem("currentUser")) {
+if (!JSON.parse(localStorage.getItem("currentUser"))) {
   // User not logged in, redirect to login page
   window.location.href = "login.html";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   // Retrieve the current user from local storage
-  const currentUser = localStorage.getItem("currentUser");
+  var currentUser = JSON.parse(localStorage.getItem("currentUser")).username;
 
   // Retrieve the user's bookings from IndexedDB
-  getAllDocuments("bookings")
-    .then((bookings) => {
+  getAllDocumentsByIndex("uid", currentUser, "bookings")
+    .then(function (bookings) {
       // Separate upcoming and previous trips
-      const upcomingTrips = bookings.filter((booking) => booking.uid === currentUser && new Date(booking.startDate) > new Date());
-      const previousTrips = bookings.filter((booking) => booking.uid === currentUser && new Date(booking.startDate) <= new Date());
+      var upcomingTrips = bookings.filter((booking) => new Date(booking.startDate) > new Date());
+      var previousTrips = bookings.filter((booking) => new Date(booking.startDate) <= new Date());
 
       // Display upcoming and previous trips
       displayTrips("upcoming-trips-list", upcomingTrips);
       displayTrips("previous-trips-list", previousTrips);
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error loading user bookings:", error);
       // Handle error, such as displaying an error message to the user
     });
@@ -39,23 +39,22 @@ function showPrevious() {
 }
 
 function displayTrips(containerId, trips) {
-  const container = document.getElementById(containerId);
+  var container = document.getElementById(containerId);
 
   if (trips.length === 0) {
     container.innerHTML = "<p>No trips available.</p>";
   } else {
     container.innerHTML = "";
 
-    trips.forEach((trip) => {
-      const tripElement = document.createElement("div");
+    trips.forEach(function(trip) {
+      var tripElement = document.createElement("div");
       tripElement.classList.add("trip-card");
 
       // Retrieve car details asynchronously
       getCarDetails(trip.cid)
-        .then((carDetails) => {
+        .then(function (carDetails) {
           // Customize the display with car details
           tripElement.innerHTML = `
-            <p><strong>Booking ID:</strong> ${trip.id}</p>
             <div>${carDetails}</div>
             <p><strong>Start Date:</strong> ${trip.startDate}</p>
             <p><strong>End Date:</strong> ${trip.endDate}</p>
@@ -65,7 +64,7 @@ function displayTrips(containerId, trips) {
 
           container.appendChild(tripElement);
         })
-        .catch((error) => {
+        .catch(function (error) {
           console.error("Error displaying trip:", error);
           // Handle error, such as displaying an error message to the user
           tripElement.innerHTML = "<p>Error displaying trip details.</p>";
@@ -78,13 +77,13 @@ function displayTrips(containerId, trips) {
 function getCarDetails(carNumber) {
   // Retrieve the car details based on the carNumber from IndexedDB
   return getByKey(carNumber, "cars")
-    .then((car) => {
+    .then(function (car) {
       return car
         ? `<img src=${car.image} />
-          <p><strong>Car:</strong> ${car.name} ${car.model} (${car.year})</p>`
+          <p><strong>Car:</strong> ${car.carName} ${car.carModel} (${car.carYear})</p>`
         : "Car details not available";
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error retrieving car details:", error);
       // Handle error, such as displaying an error message to the user
       return "Error retrieving car details";
