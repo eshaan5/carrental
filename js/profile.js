@@ -3,10 +3,10 @@ if (!JSON.parse(localStorage.getItem("currentUser"))) {
   window.location.href = "login.html";
 }
 
-const currentPasswordInput = document.getElementById("current-password");
-const newPasswordInput = document.getElementById("new-password");
-const confirmNewPasswordInput = document.getElementById("confirm-new-password");
-const passwordChangeError = document.getElementById("password-change-error");
+var currentPasswordInput = document.getElementById("current-password");
+var newPasswordInput = document.getElementById("new-password");
+var confirmNewPasswordInput = document.getElementById("confirm-new-password");
+var passwordChangeError = document.getElementById("password-change-error");
 
 newPasswordInput.addEventListener("input", function () {
   passwordChangeError.textContent = "";
@@ -38,13 +38,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadUserDetails() {
   // Retrieve username from local storage
-  const storedUsername = JSON.parse(localStorage.getItem("currentUser")).username;
+  var storedUsername = JSON.parse(localStorage.getItem("currentUser")).username;
 
   // Retrieve user details from IndexedDB
   getByKey(storedUsername, "users")
     .then(function (user) {
       // Display welcome message with first and last name
-      const welcomeMessage = `Welcome, ${user.firstName || ""} ${user.lastName || ""}!`;
+      var welcomeMessage = `Welcome, ${user.firstName || ""} ${user.lastName || ""}!`;
       document.getElementById("welcome-message").innerText = welcomeMessage;
 
       // Display other user details
@@ -68,9 +68,9 @@ function changePassword() {
   // Reset previous error messages
   passwordChangeError.textContent = "";
 
-  const currentPassword = currentPasswordInput.value;
-  const newPassword = newPasswordInput.value;
-  const confirmNewPassword = confirmNewPasswordInput.value;
+  var currentPassword = currentPasswordInput.value;
+  var newPassword = newPasswordInput.value;
+  var confirmNewPassword = confirmNewPasswordInput.value;
 
   // Basic validation
   if (!currentPassword || !newPassword || !confirmNewPassword) {
@@ -90,7 +90,7 @@ function changePassword() {
   }
 
   // Retrieve the current user's username
-  const username = JSON.parse(localStorage.getItem("currentUser")).username;
+  var username = JSON.parse(localStorage.getItem("currentUser")).username;
 
   // Retrieve the current user from IndexedDB
   getByKey(username, "users")
@@ -128,12 +128,12 @@ function isValidPassword(password) {
   // Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit
   if (password === "") return true;
 
-  const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+<>?])[A-Za-z\d!@#$%^&*()_+<>?]{8,}$/;
+  var passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+<>?])[A-Za-z\d!@#$%^&*()_+<>?]{8,}$/;
   return passwordRegex.test(password);
 }
 
 function showPasswordToast() {
-  const passwordToast = document.getElementById("password-toast");
+  var passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
   setTimeout(function () {

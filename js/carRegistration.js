@@ -1,4 +1,4 @@
-if (!localStorage.getItem("currentUser")) {
+if (!JSON.parse(localStorage.getItem("currentUser"))) {
   // User not logged in, redirect to login page
   window.location.href = "login.html";
 }
@@ -7,7 +7,7 @@ function showToast() {
   const passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
-  setTimeout(() => {
+  setTimeout(function () {
     window.location.href = "admin.html";
     passwordToast.classList.remove("show");
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
@@ -16,7 +16,7 @@ function showToast() {
 let formValid = false; // Variable to track form validity
 
 // Event listeners for input fields to show errors dynamically
-document.getElementById("car-name").addEventListener("input", () => {
+document.getElementById("car-name").addEventListener("input", function () {
   const carNameInput = document.getElementById("car-name");
   const formErrors = document.getElementById("form-errors");
   if (!carNameInput.value.trim()) {
@@ -29,7 +29,7 @@ document.getElementById("car-name").addEventListener("input", () => {
   toggleSaveButton(); // Call function to toggle save button
 });
 
-document.getElementById("car-number").addEventListener("input", () => {
+document.getElementById("car-number").addEventListener("input", function () {
   const carNumberInput = document.getElementById("car-number");
   const formErrors = document.getElementById("form-errors");
   if (!carNumberInput.value.trim()) {
@@ -45,7 +45,7 @@ document.getElementById("car-number").addEventListener("input", () => {
   toggleSaveButton();
 });
 
-document.getElementById("car-model").addEventListener("input", () => {
+document.getElementById("car-model").addEventListener("input", function () {
   const carModelInput = document.getElementById("car-model");
   const formErrors = document.getElementById("form-errors");
   if (!carModelInput.value.trim()) {
@@ -58,7 +58,7 @@ document.getElementById("car-model").addEventListener("input", () => {
   toggleSaveButton();
 });
 
-document.getElementById("car-year").addEventListener("input", () => {
+document.getElementById("car-year").addEventListener("input", function () {
   const carYearInput = document.getElementById("car-year");
   const formErrors = document.getElementById("form-errors");
   const currentYear = new Date().getFullYear();
@@ -78,7 +78,7 @@ document.getElementById("car-year").addEventListener("input", () => {
   toggleSaveButton();
 });
 
-document.getElementById("rent-amount").addEventListener("input", () => {
+document.getElementById("rent-amount").addEventListener("input", function () {
   const rentAmountInput = document.getElementById("rent-amount");
   const formErrors = document.getElementById("form-errors");
   if (!rentAmountInput.value.trim()) {
@@ -94,7 +94,7 @@ document.getElementById("rent-amount").addEventListener("input", () => {
   toggleSaveButton();
 });
 
-document.getElementById("car-image-upload").addEventListener("change", () => {
+document.getElementById("car-image-upload").addEventListener("change", function () {
   const carImageUploadInput = document.getElementById("car-image-upload");
   const formErrors = document.getElementById("form-errors");
   if (!carImageUploadInput.files[0]) {
@@ -155,11 +155,13 @@ function saveCarDetails() {
   }
 
   // Check if there's already a car with the same number
-  getByKey(carNumber, "cars").then((car) => {
+  getByKey(carNumber, "cars").then(function (car) {
     if (car) {
       // Display an error message if a car with the same number already exists
-      formErrors.textContent = "A car with the same number already exists in the database. Add another Car!";
-      return;
+      if (!car.isDeleted) {
+        formErrors.textContent = "A car with the same number already exists in the database. Add another Car!";
+        return;
+      }
     }
     formErrors.textContent = ""; // Clear errors if any
 
@@ -173,16 +175,37 @@ function saveCarDetails() {
 
       // Create a new car object
       const newCar = {
-        name: carName,
+        carName: carName,
         number: carNumber,
-        model: carModel,
-        year: carYear,
+        carModel: carModel,
+        carYear: carYear,
         image: imageDataURL,
         rentAmount: rentAmount,
       };
 
+      if (car && car.isDeleted) {
+        addToDB(newCar, "cars", car.number, "put").then(function (car) {
+          if (!car) {
+            formErrors.textContent = "Failed to add car to database. Please try again.";
+            return;
+          }
+
+          // Optionally, display a success message or redirect to another page
+          showToast();
+
+          // Clear the form
+          carNameInput.value = "";
+          carModelInput.value = "";
+          carYearInput.value = "";
+          carImageUploadInput.value = "";
+          rentAmountInput.value = "";
+          carNumberInput.value = "";
+        });
+        return;
+      }
+
       // Add the new car to the array
-      addToDB(newCar, "cars").then((car) => {
+      addToDB(newCar, "cars").then(function (car) {
         if (!car) {
           formErrors.textContent = "Failed to add car to database. Please try again.";
           return;
