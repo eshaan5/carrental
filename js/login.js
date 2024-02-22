@@ -161,7 +161,7 @@ function login() {
             document.getElementById("login-error").innerText = "";
 
             // Store the current user's username in local storage
-            localStorage.setItem("currentUser", user);
+            localStorage.setItem("currentUser", JSON.stringify(user));
 
             // Update login timestamp
             user.logins++;

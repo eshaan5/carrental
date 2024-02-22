@@ -35,6 +35,8 @@ function checkObject() {
         keyPath: "id",
       });
       bookingStore.createIndex("id", "id", { unique: true });
+      bookingStore.createIndex("cid", "carNumber", { unique: false });
+      bookingStore.createIndex("uid", "username", { unique: false });
     }
   };
 }
@@ -85,6 +87,39 @@ function getByKey(key, objectStore, indexName = null) {
       if (!db.objectStoreNames.contains(objectStore)) {
         db.createObjectStore(objectStore, { keyPath: "username" });
       }
+    };
+  });
+}
+
+function getAllDocumentsByIndex(indexName, indexValue, objectStoreName) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("carRental", 1);
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains(objectStoreName)) {
+        reject(new Error(`Object store '${objectStoreName}' not found.`));
+        return;
+      }
+
+      const transaction = db.transaction(objectStoreName, "readonly");
+      const objectStore = transaction.objectStore(objectStoreName);
+      const index = objectStore.index(indexName);
+      const getAllRequest = index.getAll(indexValue);
+
+      getAllRequest.onsuccess = (event) => {
+        const documents = event.target.result;
+        resolve(documents);
+      };
+
+      getAllRequest.onerror = (event) => {
+        reject(event.target.error);
+      };
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
     };
   });
 }
