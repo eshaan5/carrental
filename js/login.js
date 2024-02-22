@@ -1,19 +1,19 @@
-let user = localStorage.getItem("currentUser");
+var user = JSON.parse(localStorage.getItem("currentUser"));
 document.addEventListener("DOMContentLoaded", function () {
   checkObject();
 });
 
 if (user) {
-  user === "admin" ? (window.location.href = "admin.html") : (window.location.href = "landingPage.html");
+  user.username === "admin" ? (window.location.href = "admin.html") : (window.location.href = "landingPage.html");
 }
 
-const firstName = document.getElementById("first-name");
-const lastName = document.getElementById("last-name");
-const email = document.getElementById("email");
-const username = document.getElementById("username");
-const password = document.getElementById("password");
-const confirmPassword = document.getElementById("confirm-password");
-const phone = document.getElementById("phone");
+var firstName = document.getElementById("first-name");
+var lastName = document.getElementById("last-name");
+var email = document.getElementById("email");
+var username = document.getElementById("username");
+var password = document.getElementById("password");
+var confirmPassword = document.getElementById("confirm-password");
+var phone = document.getElementById("phone");
 
 firstName.addEventListener("input", function () {
   document.getElementById("signup-error").innerText = "";
@@ -82,10 +82,10 @@ function regexTest(regex, field, message, index = 6) {
 }
 
 function showToast() {
-  const passwordToast = document.getElementById("password-toast");
+  var passwordToast = document.getElementById("password-toast");
   passwordToast.classList.add("show");
 
-  setTimeout(() => {
+  setTimeout(function () {
     passwordToast.classList.remove("show");
   }, 3000); // Adjust the timeout (in milliseconds) based on how long you want the toast to be visible
 }
@@ -111,14 +111,14 @@ function signup() {
   }
 
   getByKey(username.value, "users")
-    .then((user) => {
+    .then(function (user) {
       if (user) {
         document.getElementsByClassName("error")[4].innerText = "User already exists. Please login.";
         return;
       }
 
       // Save user information in IndexedDB
-      const newUser = {
+      var newUser = {
         firstName: firstName.value,
         lastName: lastName.value,
         email: email.value,
@@ -126,16 +126,16 @@ function signup() {
         password: password.value,
         phone: phone.value,
         registeredOn: new Date().toISOString().split("T")[0],
-        logins: [],
+        logins: 0,
       };
 
       console.log(newUser);
 
       return addToDB(newUser, "users", "username");
     })
-    .then((user) => {
+    .then(function (user) {
       if (user) {
-        setTimeout(() => {
+        setTimeout(function () {
           document.getElementById("signup-form").reset();
           document.getElementById("signup-error").innerText = "";
           showToast();
@@ -146,26 +146,26 @@ function signup() {
 }
 
 function login() {
-  const credential = document.getElementById("login-username").value;
-  const password = document.getElementById("login-password").value;
+  var credential = document.getElementById("login-username").value;
+  var loginPassword = document.getElementById("login-password").value;
 
   // Retrieve user from IndexedDB
   getByKey(credential, "users")
-    .then((userByUsername) => {
+    .then(function (userByUsername) {
       getByKey(credential, "users", "email")
-        .then((userByEmail) => {
-          const user = userByUsername || userByEmail;
+        .then(function (userByEmail) {
+          var user = userByUsername || userByEmail;
 
-          if (user && user.password === password) {
+          if (user && user.password === loginPassword) {
             // Successful login
             document.getElementById("login-error").innerText = "";
 
             // Store the current user's username in local storage
-            localStorage.setItem("currentUser", user.username);
+            localStorage.setItem("currentUser", user);
 
             // Update login timestamp
-            user.logins.push(new Date().toISOString().split("T")[0]);
-            addToDB(user, "users", "username", "put").then(() => {
+            user.logins++;
+            addToDB(user, "users", "username", "put").then(function () {
               if (user.username === "admin") {
                 window.history.replaceState({}, document.title, "admin.html");
                 window.location.href = "admin.html";
@@ -180,12 +180,12 @@ function login() {
             document.getElementById("login-error").innerText = "Invalid username or password.";
           }
         })
-        .catch((error) => {
+        .catch(function (error) {
           console.error("Error retrieving user by email:", error);
           document.getElementById("login-error").innerText = "Error during login. Please try again.";
         });
     })
-    .catch((error) => {
+    .catch(function (error) {
       console.error("Error retrieving user by username:", error);
       document.getElementById("login-error").innerText = "Error during login. Please try again.";
     });
