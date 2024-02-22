@@ -1,4 +1,4 @@
-if (!localStorage.getItem("currentUser")) {
+if (!JSON.parse(localStorage.getItem("currentUser"))) {
   // User not logged in, redirect to login page
   window.location.href = "login.html";
 }
@@ -46,9 +46,9 @@ function getDatesBetween(start, end) {
 }
 
 function getBookings(startDate, endDate) {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     getAllDocuments("bookings")
-      .then((bookings) => {
+      .then(function (bookings) {
         // Filter bookings within the specified date range
         const filteredBookings = bookings.filter((booking) => {
           const bookingDate = booking.bookingDate;
@@ -56,14 +56,14 @@ function getBookings(startDate, endDate) {
         });
         resolve(filteredBookings);
       })
-      .catch((error) => {
+      .catch(function (error) {
         reject(error);
       });
   });
 }
 
 function generateAnalytics() {
-  charts.forEach((chart) => {
+  charts.forEach(function (chart) {
     chart.destroy();
   });
 
@@ -75,20 +75,19 @@ function generateAnalytics() {
   const endDate = document.getElementById("end-date").value;
 
   const dates = getDatesBetween(startDate, endDate);
-  
+
   // Call functions to generate charts and statistics based on the selected date range
   dayWiseSales(startDate, endDate);
   generateBookingsChart(startDate, endDate, dates);
-  getBookings(startDate, endDate).then((bookings) => {
+  getBookings(startDate, endDate).then(function (bookings) {
     generateTopRightSection(startDate, endDate, bookings);
     generateBottomLeftSection(bookings);
     generateBottomRightSection(bookings);
-    generateRevenueByTime(startDate, endDate, bookings); // New
+    // generateRevenueByTime(startDate, endDate, bookings); // New
   });
 }
 
-function generateRevenueByTime(startDate, endDate, bookings) {
-
+/*function generateRevenueByTime(startDate, endDate, bookings) {
   const selectedTime = document.getElementById("selected-time").value || "12:00"; // Default value is 12 PM
 
   const revenueByTimeContainer = document.getElementById("revenue-by-time-chart").getContext("2d");
@@ -146,15 +145,15 @@ function getBookingsByTime(date, selectedTime, bookings) {
     // Compare the time component only since bookingDate might be different
     return bookingDateTime.getHours() === selectedDateTime.getHours() && bookingDateTime.getMinutes() === selectedDateTime.getMinutes();
   });
-}
+}*/
 
 function generateBookingsChart(startDate = sevenDaysAgo(), endDate, dates) {
   const bookingsChartContainer = document.getElementById("bookings-chart").getContext("2d");
 
   getBookings(startDate, endDate)
-    .then((bookings) => {
+    .then(function (bookings) {
       console.log(bookings);
-      const bookingsPerDay = dates.map((date) => {
+      const bookingsPerDay = dates.map(function (date) {
         return bookings.filter((booking) => booking.bookingDate === date).length;
       });
 
@@ -234,16 +233,16 @@ function generateTopRightSection(startDate, endDate, bookings) {
     return total + booking.totalAmount;
   }, 0);
 
-  let totalLogins = 0;
+  // let totalLogins = 0;
   let totalSignups = 0;
 
   // Retrieve users from IndexedDB
   getAllDocuments("users")
-    .then((users) => {
+    .then(function (users) {
       // Calculate total logins and total signups within the date range
-      users.forEach((user) => {
+      users.forEach(function (user) {
         if (user.username !== "admin") {
-          totalLogins += user.logins.filter((login) => login >= startDate && login <= endDate).length;
+          // totalLogins += user.logins.filter((login) => login >= startDate && login <= endDate).length;
           if (new Date(user.signupDate) >= new Date(startDate) && new Date(user.signupDate) <= new Date(endDate)) {
             totalSignups++;
           }
@@ -251,7 +250,7 @@ function generateTopRightSection(startDate, endDate, bookings) {
       });
 
       // Calculate conversion rate
-      const conversionRate = totalLogins > 0 ? ((bookings.length / totalLogins) * 100).toFixed(2) : 0;
+      // const conversionRate = totalLogins > 0 ? ((bookings.length / totalLogins) * 100).toFixed(2) : 0;
 
       // Update the HTML content of the top right section
       const topRightSection = document.getElementById("top-right-section");
@@ -261,19 +260,11 @@ function generateTopRightSection(startDate, endDate, bookings) {
               <h3>Total Revenue:</h3>
               <p>${totalRevenue}</p>
           </div>
-          <div class="top-card" style="">
-              <h3>Total Logins:</h3>
-              <p>${totalLogins}</p>
-          </div>
         </div>
         <div style="display: flex; gap: 2rem;">
           <div class="top-card" style="">
               <h3>Total Signups:</h3>
               <p>${totalSignups}</p>
-          </div>
-          <div class="top-card" style="">
-              <h3>Conversion Rate:</h3>
-              <p>${conversionRate} %</p>
           </div>
         </div>
     `;
@@ -288,7 +279,7 @@ function generateBottomLeftSection(bookings) {
   const cars = [];
 
   // Calculate total revenue per user and total bookings per car
-  bookings.forEach((booking) => {
+  bookings.forEach(function (booking) {
     users[booking.uid] ? (users[booking.uid] += booking.totalAmount) : (users[booking.uid] = booking.totalAmount);
   });
 
@@ -300,10 +291,10 @@ function generateBottomLeftSection(bookings) {
   const topUsersTable = document.getElementById("top-users-table");
   const topCarsTable = document.getElementById("top-cars-table");
 
-  bookings.forEach((booking) => {
+  bookings.forEach(function (booking) {
     // Retrieve car details from IndexedDB
     getByKey(booking.cid, "cars")
-      .then((car) => {
+      .then(function (car) {
         const existingCarIndex = cars.findIndex((c) => c.number === car.number);
         if (existingCarIndex === -1) {
           car.totalBookings = bookings.filter((b) => b.cid === car.number).length;
@@ -339,7 +330,7 @@ function generateBottomLeftSection(bookings) {
       .map(
         (car) => `
           <tr>
-            <td>${car.name} ${car.model}</td>
+            <td>${car.carName} ${car.carModel}</td>
             <td>${car.totalBookings}</td>
           </tr>
       `
@@ -404,13 +395,13 @@ function generateBottomRightSection(bookings) {
 
   // Retrieve all cars from IndexedDB
   getAllDocuments("cars")
-    .then((cars) => {
+    .then(function (cars) {
       // Iterate over each car
-      cars.forEach((car) => {
+      cars.forEach(function (car) {
         // Filter bookings for the current car
         const carBookings = bookings.filter((booking) => booking.cid === car.number);
         // Update carWiseBookings with the count of bookings for the current car
-        carWiseBookings[car.name] ? (carWiseBookings[car.name] += carBookings.length) : (carWiseBookings[car.name] = carBookings.length);
+        carWiseBookings[car.carName] ? (carWiseBookings[car.carName] += carBookings.length) : (carWiseBookings[car.carName] = carBookings.length);
       });
 
       // Calculate percentage values
@@ -450,18 +441,18 @@ function dayWiseSales(startDate, endDate) {
   const res = [[], [], [], [], [], [], []];
 
   return getAllDocuments("bookings")
-    .then((allBookings) => {
+    .then(function (allBookings) {
       dates.forEach((date) => {
         const day = new Date(date).getDay();
 
-        const bookings = allBookings.filter((booking) => {
+        const bookings = allBookings.filter(function (booking) {
           return booking.bookingDate === date;
         });
 
         res[day].push(bookings.length);
       });
 
-      res.forEach((day) => {
+      res.forEach(function (day) {
         while (day.length < labelArray.length) {
           day.push(0);
         }
