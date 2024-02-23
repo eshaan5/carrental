@@ -258,7 +258,7 @@ function generateTopRightSection(startDate, endDate, bookings) {
         <div style="display: flex; gap: 2rem;">
           <div class="top-card" style="">
               <h3>Total Revenue:</h3>
-              <p>${totalRevenue}</p>
+              <p>&#8377;${totalRevenue}</p>
           </div>
         </div>
         <div style="display: flex; gap: 2rem;">

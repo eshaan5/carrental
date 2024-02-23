@@ -44,14 +44,19 @@ function showPrevious() {
 }
 
 function displayTrips(containerId, trips) {
+  console.log("Displaying trips:", trips);
   var container = document.getElementById(containerId);
 
   if (trips.length === 0) {
+    console.log("No trips available.");
     container.innerHTML = "<p>No trips available.</p>";
   } else {
     container.innerHTML = "";
 
     trips.forEach(function(trip) {
+
+      if (trip.isCancelled) return;
+
       var tripElement = document.createElement("div");
       tripElement.classList.add("trip-card");
 
@@ -65,6 +70,7 @@ function displayTrips(containerId, trips) {
             <p><strong>End Date:</strong> ${trip.endDate}</p>
             <p><strong>Price:</strong> ₹ ${trip.totalAmount}</p>
             <!-- Add more details as needed -->
+            ${containerId === "upcoming-trips-list" ? `<button class="cancel-btn" onclick="cancelBooking('${trip.id}')">Cancel</button>` : ""}
           `;
 
           container.appendChild(tripElement);
@@ -77,6 +83,21 @@ function displayTrips(containerId, trips) {
         });
     });
   }
+}
+
+function cancelBooking(bookingId) {
+  
+  getByKey(bookingId, "bookings")
+  .then(function (booking) {
+    booking.isCancelled = true;
+    return addToDB(booking, "bookings", bookingId, "put");
+  })
+  .then(function (updatedBooking) {
+    console.log("Booking cancelled:", updatedBooking);
+    // Reload the page to reflect the updated bookings
+    window.location.href = "bookings.html";
+  })
+
 }
 
 function getCarDetails(carNumber) {
