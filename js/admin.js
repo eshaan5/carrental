@@ -214,7 +214,7 @@ function showBookings(carNumber) {
       }
       bookings.forEach(function (booking) {
         var bookingDetails = document.createElement("p");
-        bookingDetails.textContent = `Booking ID: ${booking.id}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
+        bookingDetails.textContent = `Booked by: ${booking.uid}, Start Date: ${booking.startDate}, End Date: ${booking.endDate}, Total Amount: ₹${booking.totalAmount}`;
         // Append the booking details to the bookings list
         bookingsList.appendChild(bookingDetails);
       });

@@ -243,7 +243,7 @@ function generateTopRightSection(startDate, endDate, bookings) {
       users.forEach(function (user) {
         if (user.username !== "admin") {
           // totalLogins += user.logins.filter((login) => login >= startDate && login <= endDate).length;
-          if (new Date(user.signupDate) >= new Date(startDate) && new Date(user.signupDate) <= new Date(endDate)) {
+          if (new Date(user.registeredOn) >= new Date(startDate) && new Date(user.registeredOn) <= new Date(endDate)) {
             totalSignups++;
           }
         }

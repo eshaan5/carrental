@@ -54,6 +54,7 @@ button:hover {
 }
 
 .modal-content {
+  overflow: auto;
   background-color: #fff;
   padding: 20px;
   margin: 15% auto;
@@ -101,6 +102,14 @@ button:hover {
     opacity: 0;
     display: none;
   }
+}
+
+#bookings-list {
+  overflow: auto;
+}
+
+.modal {
+  overflow: auto;
 }
 
 .car-card {

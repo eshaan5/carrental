@@ -3,6 +3,11 @@ if (!JSON.parse(localStorage.getItem("currentUser"))) {
   window.location.href = "login.html";
 }
 
+if (JSON.parse(localStorage.getItem("currentUser")).username === "admin") {
+  // Admin logged in, redirect to admin page
+  window.location.href = "admin.html";
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   // Retrieve the current user from local storage
   var currentUser = JSON.parse(localStorage.getItem("currentUser")).username;

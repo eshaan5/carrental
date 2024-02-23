@@ -3,6 +3,11 @@ if (!JSON.parse(localStorage.getItem("currentUser"))) {
   window.location.href = "login.html";
 }
 
+if (JSON.parse(localStorage.getItem("currentUser")).username === "admin") {
+  // Admin logged in, redirect to admin page
+  window.location.href = "admin.html";
+}
+
 var startDateInput = document.getElementById("start-date");
 var endDateInput = document.getElementById("end-date");
 var rentStartDateInput = document.getElementById("rent-start-date");
@@ -186,6 +191,7 @@ var carsPerPage = 5;
 
 // Update the displayAvailableCars function
 function displayAvailableCars(availableCars) {
+  console.log(availableCars);
   var availableCarsContainer = document.getElementById("available-cars");
   availableCarsContainer.innerHTML = ""; // Clear previous results
 
